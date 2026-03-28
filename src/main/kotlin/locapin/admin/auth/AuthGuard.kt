@@ -6,7 +6,6 @@ import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.intercept
-import io.ktor.server.routing.proceed
 import io.ktor.util.pipeline.PipelinePhase
 
 fun Route.requireAdminSession() {
@@ -17,6 +16,5 @@ fun Route.requireAdminSession() {
             finish()
             return@intercept
         }
-        proceed()
     }
 }

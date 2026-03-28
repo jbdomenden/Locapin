@@ -9,6 +9,7 @@ import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
+import kotlinx.html.FormMethod
 import locapin.admin.auth.AdminSession
 import locapin.admin.models.RecordStatus
 import locapin.admin.services.AdminContentService
@@ -25,7 +26,7 @@ class AdminController(
     suspend fun loginPage(ctx: RoutingContext) = ctx.call.renderPage("Admin Login", null) {
         h2 { +"LocaPin Admin" }
         p { +"Manage tourism content for San Juan City." }
-        form("/admin/login", FormMethod.post) {
+        form(action = "/admin/login", method = FormMethod.post) {
             label { +"Email" }
             textInput(name = "email") { required = true }
             label { +"Password" }
@@ -97,7 +98,7 @@ class AdminController(
         val session = ctx.call.sessions.get<AdminSession>()
         val city = id?.let { contentService.getCity(it) }
         ctx.call.renderPage(if (id == null) "Create City" else "Edit City", session) {
-            form(if (id == null) "/admin/cities" else "/admin/cities/$id", FormMethod.post) {
+            form(action = if (id == null) "/admin/cities" else "/admin/cities/$id", method = FormMethod.post) {
                 label { +"Name" }; textInput(name = "name") { value = city?.name ?: ""; required = true }
                 label { +"Premium" }; checkBoxInput(name = "isPremium") { checked = city?.isPremium == true }
                 label { +"Status" }; select { name = "status"; RecordStatus.entries.forEach { option { value = it.name; +it.name; if (city?.status == it || (city == null && it == RecordStatus.ACTIVE)) selected = true } } }
@@ -119,7 +120,7 @@ class AdminController(
         val rows = contentService.listAreas(cityId)
         ctx.call.renderPage("Areas", session) {
             a("/admin/areas/new", classes = "btn") { +"Add Area" }
-            form("/admin/areas", FormMethod.get) { select { name = "cityId"; option { value = ""; +"All cities" }; cities.forEach { option { value = it.id.toString(); +it.name } } }; button { +"Filter" } }
+            form(action = "/admin/areas", method = FormMethod.get) { select { name = "cityId"; option { value = ""; +"All cities" }; cities.forEach { option { value = it.id.toString(); +it.name } } }; button { +"Filter" } }
             table { tr { th { +"City" }; th { +"Name" }; th { +"Center" }; th { +"Status" }; th { +"Actions" } }
                 rows.forEach { a -> tr { td { +a.cityName }; td { +a.name }; td { +"${a.centerLatitude}, ${a.centerLongitude}" }; td { +a.status.name }; td { a("/admin/areas/${a.id}/edit") { +"Edit" } } } }
             }
@@ -131,7 +132,7 @@ class AdminController(
         val area = id?.let { contentService.getArea(it) }
         val cities = contentService.listCities()
         ctx.call.renderPage(if (id == null) "Create Area" else "Edit Area", session) {
-            form(if (id == null) "/admin/areas" else "/admin/areas/$id", FormMethod.post) {
+            form(action = if (id == null) "/admin/areas" else "/admin/areas/$id", method = FormMethod.post) {
                 label { +"City" }; select { name = "cityId"; cities.forEach { c -> option { value = c.id.toString(); +c.name; if (area?.cityId == c.id) selected = true } } }
                 label { +"Name" }; textInput(name = "name") { value = area?.name ?: ""; required = true }
                 label { +"Latitude" }; numberInput(name = "lat") { value = area?.centerLatitude?.toString() ?: ""; step = "any" }
@@ -164,7 +165,7 @@ class AdminController(
         val session = ctx.call.sessions.get<AdminSession>()
         val plan = id?.let { contentService.getPlan(it) }
         ctx.call.renderPage(if (id == null) "Create Plan" else "Edit Plan", session) {
-            form(if (id == null) "/admin/plans" else "/admin/plans/$id", FormMethod.post) {
+            form(action = if (id == null) "/admin/plans" else "/admin/plans/$id", method = FormMethod.post) {
                 label { +"Name" }; textInput(name = "name") { value = plan?.name ?: ""; required = true }
                 label { +"Description" }; textArea { name = "description"; +(plan?.description ?: "") }
                 label { +"Price" }; numberInput(name = "price") { value = plan?.price?.toPlainString() ?: ""; step = "0.01" }

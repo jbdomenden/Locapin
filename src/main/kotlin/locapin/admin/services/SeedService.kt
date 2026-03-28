@@ -10,7 +10,7 @@ import java.time.LocalDateTime
 object SeedService {
     fun seedDefaultData() = transaction {
         val now = LocalDateTime.now()
-        val cityId = if (Cities.selectAll().empty()) {
+        val seededCityId = if (Cities.selectAll().empty()) {
             Cities.insert {
                 it[name] = "San Juan City"
                 it[isPremium] = true
@@ -23,7 +23,7 @@ object SeedService {
         if (Areas.selectAll().empty()) {
             listOf("Greenhills", "Little Baguio", "West Crame").forEachIndexed { idx, areaName ->
                 Areas.insert {
-                    it[cityId] = cityId
+                    it[Areas.cityId] = seededCityId
                     it[name] = areaName
                     it[centerLatitude] = 14.60 + (idx * 0.01)
                     it[centerLongitude] = 121.03 + (idx * 0.01)

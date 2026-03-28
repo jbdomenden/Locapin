@@ -17,7 +17,7 @@ class AttractionRepository {
         return q.orderBy(Attractions.createdAt, SortOrder.DESC).map { toView(it) }
     }
 
-    fun latest(limit: Int): List<AttractionView> = baseJoin.selectAll().orderBy(Attractions.createdAt, SortOrder.DESC).limit(limit.toLong()).map { toView(it) }
+    fun latest(limit: Int): List<AttractionView> = baseJoin.selectAll().orderBy(Attractions.createdAt, SortOrder.DESC).limit(limit).map { toView(it) }
 
     fun get(id: Long): AttractionView? = baseJoin.selectAll().where { Attractions.id eq id }.map { toView(it) }.singleOrNull()
 

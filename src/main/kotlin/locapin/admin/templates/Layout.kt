@@ -1,26 +1,28 @@
 package locapin.admin.templates
 
-import io.ktor.server.html.respondHtml
 import io.ktor.server.application.ApplicationCall
+import io.ktor.server.html.respondHtml
 import kotlinx.html.*
 import locapin.admin.auth.AdminSession
 
 suspend fun ApplicationCall.renderPage(
-    title: String,
+    pageTitle: String,
     session: AdminSession?,
-    content: DIV.() -> Unit
+    content: FlowContent.() -> Unit
 ) {
     respondHtml {
         head {
             meta { charset = "utf-8" }
             meta { name = "viewport"; content = "width=device-width,initial-scale=1" }
-            this.title(title)
+            title { +pageTitle }
             link(rel = "stylesheet", href = "/static/css/admin.css")
             script(src = "/static/js/admin.js") {}
         }
         body {
             if (session == null) {
-                main(classes = "auth-shell") { div(classes = "auth-card", block = content) }
+                main(classes = "auth-shell") {
+                    div(classes = "auth-card") { content() }
+                }
             } else {
                 div(classes = "app-shell") {
                     aside(classes = "sidebar") {
@@ -39,10 +41,10 @@ suspend fun ApplicationCall.renderPage(
                     }
                     div(classes = "main") {
                         header(classes = "topbar") {
-                            h1 { +title }
+                            h1 { +pageTitle }
                             div { +session.fullName; +" | "; a("/admin/logout") { +"Logout" } }
                         }
-                        main(classes = "content", block = content)
+                        main(classes = "content") { content() }
                     }
                 }
             }

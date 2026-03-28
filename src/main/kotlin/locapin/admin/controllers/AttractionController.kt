@@ -27,7 +27,7 @@ class AttractionController(
         val rows = contentService.listAttractions(cityId, areaId, search)
         ctx.call.renderPage("Attractions", session) {
             a("/admin/attractions/new", classes = "btn") { +"Add Attraction" }
-            form("/admin/attractions", kotlinx.html.FormMethod.get) {
+            form(action = "/admin/attractions", method = kotlinx.html.FormMethod.get) {
                 textInput(name = "search") { placeholder = "Search by name"; value = search ?: "" }
                 select { name = "cityId"; option { value = ""; +"All cities" }; cities.forEach { c -> option { value = c.id.toString(); +c.name } } }
                 button { +"Apply" }
@@ -41,15 +41,15 @@ class AttractionController(
         }
     }
 
-    suspend fun form(ctx: RoutingContext, id: Long?) {
+    suspend fun form(ctx: RoutingContext, attractionFormId: Long?) {
         val session = ctx.call.sessions.get<AdminSession>()
-        val attraction = id?.let { contentService.getAttraction(it) }
+        val attraction = attractionFormId?.let { contentService.getAttraction(it) }
         val cities = contentService.listCities()
         val areas = attraction?.let { contentService.areasByCity(it.cityId) } ?: cities.firstOrNull()?.let { contentService.areasByCity(it.id) }.orEmpty()
-        ctx.call.renderPage(if (id == null) "Create Attraction" else "Edit Attraction", session) {
-            form(if (id == null) "/admin/attractions" else "/admin/attractions/$id", kotlinx.html.FormMethod.post) {
-                label { +"City" }; select { name = "cityId"; id = "citySelect"; attributes["data-area-target"] = "areaSelect"; cities.forEach { c -> option { value = c.id.toString(); +c.name; if (attraction?.cityId == c.id) selected = true } } }
-                label { +"Area" }; select { name = "areaId"; id = "areaSelect"; areas.forEach { a -> option { value = a.id.toString(); +a.name; if (attraction?.areaId == a.id) selected = true } } }
+        ctx.call.renderPage(if (attractionFormId == null) "Create Attraction" else "Edit Attraction", session) {
+            form(action = if (attractionFormId == null) "/admin/attractions" else "/admin/attractions/$attractionFormId", method = kotlinx.html.FormMethod.post) {
+                label { +"City" }; select { name = "cityId"; attributes["id"] = "citySelect"; attributes["data-area-target"] = "areaSelect"; cities.forEach { c -> option { value = c.id.toString(); +c.name; if (attraction?.cityId == c.id) selected = true } } }
+                label { +"Area" }; select { name = "areaId"; attributes["id"] = "areaSelect"; areas.forEach { a -> option { value = a.id.toString(); +a.name; if (attraction?.areaId == a.id) selected = true } } }
                 label { +"Name" }; textInput(name = "name") { value = attraction?.name ?: ""; required = true }
                 label { +"Description" }; textArea { name = "description"; +(attraction?.description ?: "") }
                 label { +"Highlights" }; textArea { name = "highlights"; +(attraction?.highlights ?: "") }
@@ -90,7 +90,7 @@ class AttractionController(
             p { +attr.description }
             p { +"Highlights: ${attr.highlights}" }
             a("/admin/attractions/$id/photos", classes = "btn") { +"Manage Photos" }
-            form("/admin/attractions/$id/archive", kotlinx.html.FormMethod.post) { button(classes = "btn-danger") { +"Archive attraction" } }
+            form(action = "/admin/attractions/$id/archive", method = kotlinx.html.FormMethod.post) { button(classes = "btn-danger") { +"Archive attraction" } }
             div("gallery") { photos.forEach { img(src = it.imagePath, alt = "photo") { classes = setOf("preview") } } }
         }
     }
@@ -104,7 +104,7 @@ class AttractionController(
         val session = ctx.call.sessions.get<AdminSession>()
         val photos = contentService.photos(attractionId)
         ctx.call.renderPage("Photo Management", session) {
-            form("/admin/attractions/$attractionId/photos", kotlinx.html.FormMethod.post, encType = kotlinx.html.FormEncType.multipartFormData) {
+            form(action = "/admin/attractions/$attractionId/photos", encType = kotlinx.html.FormEncType.multipartFormData, method = kotlinx.html.FormMethod.post) {
                 fileInput(name = "photos") { multiple = true; accept = "image/*"; id = "photoInput" }
                 div { id = "previewContainer" }
                 button { +"Upload" }
@@ -114,7 +114,7 @@ class AttractionController(
                     li {
                         +"#${p.sortOrder} "
                         img(src = p.imagePath, alt = "photo") { classes = setOf("thumb") }
-                        form("/admin/photos/${p.id}/delete", kotlinx.html.FormMethod.post) { button(classes = "btn-danger") { +"Delete" } }
+                        form(action = "/admin/photos/${p.id}/delete", method = kotlinx.html.FormMethod.post) { button(classes = "btn-danger") { +"Delete" } }
                     }
                 }
             }
