@@ -1,0 +1,17 @@
+<form action="<#if attraction??>/admin/attractions/${attraction.id}<#else>/admin/attractions</#if>" method="post">
+  <label>City</label>
+  <select name="cityId" id="citySelect" data-area-target="areaSelect">
+    <#list cities as c><option value="${c.id}" <#if attraction?? && attraction.cityId == c.id>selected</#if>>${c.name}</option></#list>
+  </select>
+  <label>Area</label>
+  <select name="areaId" id="areaSelect"><#list areas as a><option value="${a.id}" <#if attraction?? && attraction.areaId == a.id>selected</#if>>${a.name}</option></#list></select>
+  <label>Name</label><input type="text" name="name" required value="${attraction.name!}" />
+  <label>Description</label><textarea name="description">${attraction.description!}</textarea>
+  <label>Highlights</label><textarea name="highlights">${attraction.highlights!}</textarea>
+  <label>Latitude</label><input type="number" step="any" name="lat" value="${attraction.latitude!}" />
+  <label>Longitude</label><input type="number" step="any" name="lng" value="${attraction.longitude!}" />
+  <label>Open Hours</label><input type="text" name="openHours" value="${attraction.openHours!}" />
+  <label><input type="checkbox" name="isFeatured" <#if attraction?? && attraction.isFeatured>checked</#if> /> Featured</label>
+  <label>Status</label><select name="status"><#list statuses as s><option value="${s}" <#if (attraction.status!'ACTIVE') == s?string>selected</#if>>${s}</option></#list></select>
+  <button type="submit">Save</button>
+</form>

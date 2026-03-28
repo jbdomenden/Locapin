@@ -1,0 +1,12 @@
+<a class="btn" href="/admin/areas/new">Add Area</a>
+<form action="/admin/areas" method="get">
+  <select name="cityId">
+    <option value="">All cities</option>
+    <#list cities as c><option value="${c.id}" <#if selectedCityId?? && selectedCityId == c.id>selected</#if>>${c.name}</option></#list>
+  </select>
+  <button type="submit">Filter</button>
+</form>
+<table>
+  <tr><th>City</th><th>Name</th><th>Center</th><th>Status</th><th>Actions</th></tr>
+  <#list areas as a><tr><td>${a.cityName}</td><td>${a.name}</td><td>${a.centerLatitude}, ${a.centerLongitude}</td><td>${a.status}</td><td><a href="/admin/areas/${a.id}/edit">Edit</a></td></tr></#list>
+</table>
