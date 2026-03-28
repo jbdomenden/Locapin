@@ -1,44 +1,54 @@
-# Locapin
+# LocaPin Admin (Ktor + Kotlin)
 
-This project was created using the [Ktor Project Generator](https://start.ktor.io).
-
-Here are some useful links to get you started:
-
-- [Ktor Documentation](https://ktor.io/docs/home.html)
-- [Ktor GitHub page](https://github.com/ktorio/ktor)
-- The [Ktor Slack chat](https://app.slack.com/client/T09229ZC6/C0A974TJ9). You'll need
-  to [request an invite](https://surveys.jetbrains.com/s3/kotlin-slack-sign-up) to join.
+Admin panel for managing LocaPin tourism content for San Juan City.
 
 ## Features
+- Session-based admin auth with BCrypt password checks.
+- Bootstrap first super admin from `.env` only.
+- Dashboard with counts and latest attraction summaries.
+- CRUD-style management for cities, areas, attractions, photos, and subscription plans.
+- JSON endpoints for async admin interactions.
+- Server-rendered UI (kotlinx.html) + responsive branded CSS + vanilla JS.
 
-Here's a list of features included in this project:
+## Setup
+1. Copy environment file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Update admin bootstrap secrets in `.env`.
+3. Ensure PostgreSQL exists:
+   - Database: `Locapin_db`
+   - User/password matching `.env`
+4. Run app:
+   ```bash
+   ./gradlew run
+   ```
+5. Open `http://localhost:9000/admin/login`.
 
-| Name                                                                   | Description                                                                        |
-|------------------------------------------------------------------------|------------------------------------------------------------------------------------|
-| [Routing](https://start.ktor.io/p/routing)                             | Provides a structured routing DSL                                                  |
-| [Authentication](https://start.ktor.io/p/auth)                         | Provides extension point for handling the Authorization header                     |
-| [Authentication JWT](https://start.ktor.io/p/auth-jwt)                 | Handles JSON Web Token (JWT) bearer authentication scheme                          |
-| [Content Negotiation](https://start.ktor.io/p/content-negotiation)     | Provides automatic content conversion according to Content-Type and Accept headers |
-| [kotlinx.serialization](https://start.ktor.io/p/kotlinx-serialization) | Handles JSON serialization using kotlinx.serialization library                     |
+## Required environment variables
+- `DB_URL=jdbc:postgresql://localhost:5432/Locapin_db`
+- `DB_USER=postgres`
+- `DB_PASSWORD=root`
+- `ADMIN_INITIAL_NAME`
+- `ADMIN_INITIAL_EMAIL`
+- `ADMIN_INITIAL_PASSWORD`
+- `SESSION_SECRET`
+- `APP_ENV=development`
+- `APP_PORT=9000`
+- `FILE_UPLOAD_DIR=uploads`
 
-## Building & Running
+## Bootstrap behavior
+- On startup, schema is created if missing.
+- If no row exists in `admin_users`, app creates one super admin using `.env` values.
+- If required env vars are missing, app fails fast before serving requests.
 
-To build or run the project, use one of the following tasks:
+## Seed data
+- City: San Juan City (premium-enabled).
+- Areas: Greenhills, Little Baguio, West Crame.
+- Plans: Monthly Premium, Yearly Premium.
 
-| Task                                    | Description                                                          |
-|-----------------------------------------|----------------------------------------------------------------------|
-| `./gradlew test`                        | Run the tests                                                        |
-| `./gradlew build`                       | Build everything                                                     |
-| `./gradlew buildFatJar`                 | Build an executable JAR of the server with all dependencies included |
-| `./gradlew buildImage`                  | Build the docker image to use with the fat JAR                       |
-| `./gradlew publishImageToLocalRegistry` | Publish the docker image locally                                     |
-| `./gradlew run`                         | Run the server                                                       |
-| `./gradlew runDocker`                   | Run using the local docker image                                     |
-
-If the server starts successfully, you'll see the following output:
-
-```
-2024-12-04 14:32:45.584 [main] INFO  Application - Application started in 0.303 seconds.
-2024-12-04 14:32:45.682 [main] INFO  Application - Responding at http://0.0.0.0:8080
-```
-
+## Extension points
+- Add role-based authorization checks in `auth/`.
+- Add migration tooling (Flyway/Liquibase) for production rollouts.
+- Replace local upload storage with object storage by swapping `FileStorageService`.
+- Add pagination/search service wrappers per module for larger datasets.
