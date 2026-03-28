@@ -10,6 +10,7 @@ import locapin.admin.plugins.configureMonitoring
 import locapin.admin.plugins.configureSecurity
 import locapin.admin.plugins.configureSerialization
 import locapin.admin.plugins.configureStatusPages
+import locapin.admin.plugins.configureTemplating
 import locapin.admin.routes.configureRoutes
 
 fun main() {
@@ -23,6 +24,7 @@ fun Application.module(config: AppConfig = AppConfig.load()) {
     configureMonitoring()
     configureHttp()
     configureSerialization()
+    configureTemplating()
     configureStatusPages()
     configureSecurity(config)
 

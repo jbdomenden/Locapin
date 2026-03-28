@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <#include "../partials/head.html">
+</head>
+<body>
+<#if currentAdmin??>
+<div class="app-shell">
+  <#include "../partials/sidebar.html">
+  <div class="main">
+    <#include "../partials/topbar.html">
+    <main class="content">
+      <#include contentTemplate>
+    </main>
+  </div>
+</div>
+<#else>
+<main class="auth-shell">
+  <div class="auth-card">
+    <#include contentTemplate>
+  </div>
+</main>
+</#if>
+<#include "../partials/scripts.html">
+</body>
+</html>

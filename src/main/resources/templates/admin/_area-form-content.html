@@ -1,0 +1,12 @@
+<form action="<#if area??>/admin/areas/${area.id}<#else>/admin/areas</#if>" method="post">
+  <label>City</label>
+  <select name="cityId">
+    <#list cities as c><option value="${c.id}" <#if area?? && area.cityId == c.id>selected</#if>>${c.name}</option></#list>
+  </select>
+  <label>Name</label><input type="text" name="name" required value="${area.name!}" />
+  <label>Latitude</label><input type="number" step="any" name="lat" value="${area.centerLatitude!}" />
+  <label>Longitude</label><input type="number" step="any" name="lng" value="${area.centerLongitude!}" />
+  <label>Boundary Data</label><textarea name="boundary"></textarea>
+  <label>Status</label><select name="status"><#list statuses as s><option value="${s}" <#if (area.status!'ACTIVE') == s?string>selected</#if>>${s}</option></#list></select>
+  <button type="submit">Save</button>
+</form>

@@ -1,0 +1,7 @@
+<header class="topbar">
+  <h1>${pageTitle!"LocaPin Admin"}</h1>
+  <div>
+    <#if currentAdmin??>${currentAdmin.fullName} |</#if>
+    <a href="/admin/logout">Logout</a>
+  </div>
+</header>

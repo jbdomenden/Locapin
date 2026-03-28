@@ -1,0 +1,5 @@
+<a class="btn" href="/admin/plans/new">Add Plan</a>
+<table>
+<tr><th>Name</th><th>Period</th><th>Price</th><th>Active</th><th>Actions</th></tr>
+<#list plans as p><tr><td>${p.name}</td><td>${p.billingPeriod}</td><td>${p.price}</td><td>${p.isActive?string('Yes','No')}</td><td><a href="/admin/plans/${p.id}/edit">Edit</a></td></tr></#list>
+</table>

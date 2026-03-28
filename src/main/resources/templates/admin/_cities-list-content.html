@@ -1,0 +1,9 @@
+<a class="btn" href="/admin/cities/new">Add City</a>
+<table>
+  <tr><th>Name</th><th>Premium</th><th>Status</th><th>Actions</th></tr>
+  <#list cities as c>
+  <tr>
+    <td>${c.name}</td><td>${c.isPremium?string('Yes','No')}</td><td>${c.status}</td><td><a href="/admin/cities/${c.id}/edit">Edit</a></td>
+  </tr>
+  </#list>
+</table>

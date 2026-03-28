@@ -35,9 +35,9 @@ dependencies {
     implementation("io.ktor:ktor-server-forwarded-header:$ktorVersion")
     implementation("io.ktor:ktor-server-auto-head-response:$ktorVersion")
     implementation("io.ktor:ktor-server-compression:$ktorVersion")
-    implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
     implementation("io.ktor:ktor-server-partial-content:$ktorVersion")
     implementation("io.ktor:ktor-server-caching-headers:$ktorVersion")
+    implementation("io.ktor:ktor-server-freemarker:$ktorVersion")
     implementation("io.ktor:ktor-server-resources:$ktorVersion")
 
     implementation("org.jetbrains.exposed:exposed-core:0.50.1")

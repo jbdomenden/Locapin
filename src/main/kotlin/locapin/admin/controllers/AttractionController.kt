@@ -5,62 +5,43 @@ import io.ktor.server.request.receiveParameters
 import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.RoutingContext
-import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
 import kotlinx.serialization.Serializable
-import locapin.admin.auth.AdminSession
 import locapin.admin.models.RecordStatus
 import locapin.admin.services.AdminContentService
 import locapin.admin.services.FileStorageService
-import locapin.admin.templates.renderPage
+import locapin.admin.templates.renderView
 
 class AttractionController(
     private val contentService: AdminContentService,
     private val fileStorageService: FileStorageService
 ) {
     suspend fun list(ctx: RoutingContext) {
-        val session = ctx.call.sessions.get<AdminSession>()
         val cities = contentService.listCities()
         val cityId = ctx.call.request.queryParameters["cityId"]?.toLongOrNull()
         val areaId = ctx.call.request.queryParameters["areaId"]?.toLongOrNull()
         val search = ctx.call.request.queryParameters["search"]
         val rows = contentService.listAttractions(cityId, areaId, search)
-        ctx.call.renderPage("Attractions", session) {
-            a("/admin/attractions/new", classes = "btn") { +"Add Attraction" }
-            form(action = "/admin/attractions", method = kotlinx.html.FormMethod.get) {
-                textInput(name = "search") { placeholder = "Search by name"; value = search ?: "" }
-                select { name = "cityId"; option { value = ""; +"All cities" }; cities.forEach { c -> option { value = c.id.toString(); +c.name } } }
-                button { +"Apply" }
-            }
-            table {
-                tr { th { +"Name" }; th { +"City" }; th { +"Area" }; th { +"Status" }; th { +"Featured" }; th { +"Actions" } }
-                rows.forEach { r -> tr { td { +r.name }; td { +r.cityName }; td { +r.areaName }; td { +r.status.name }; td { +r.isFeatured.toString() }; td {
-                    a("/admin/attractions/${r.id}") { +"View" }; +" | "; a("/admin/attractions/${r.id}/edit") { +"Edit" }
-                } } }
-            }
-        }
+        ctx.call.renderView(
+            "admin/attractions-list.html",
+            mapOf("pageTitle" to "Attractions", "activeNav" to "attractions", "cities" to cities, "attractions" to rows, "selectedCityId" to cityId, "search" to search.orEmpty())
+        )
     }
 
     suspend fun form(ctx: RoutingContext, attractionFormId: Long?) {
-        val session = ctx.call.sessions.get<AdminSession>()
         val attraction = attractionFormId?.let { contentService.getAttraction(it) }
         val cities = contentService.listCities()
         val areas = attraction?.let { contentService.areasByCity(it.cityId) } ?: cities.firstOrNull()?.let { contentService.areasByCity(it.id) }.orEmpty()
-        ctx.call.renderPage(if (attractionFormId == null) "Create Attraction" else "Edit Attraction", session) {
-            form(action = if (attractionFormId == null) "/admin/attractions" else "/admin/attractions/$attractionFormId", method = kotlinx.html.FormMethod.post) {
-                label { +"City" }; select { name = "cityId"; attributes["id"] = "citySelect"; attributes["data-area-target"] = "areaSelect"; cities.forEach { c -> option { value = c.id.toString(); +c.name; if (attraction?.cityId == c.id) selected = true } } }
-                label { +"Area" }; select { name = "areaId"; attributes["id"] = "areaSelect"; areas.forEach { a -> option { value = a.id.toString(); +a.name; if (attraction?.areaId == a.id) selected = true } } }
-                label { +"Name" }; textInput(name = "name") { value = attraction?.name ?: ""; required = true }
-                label { +"Description" }; textArea { name = "description"; +(attraction?.description ?: "") }
-                label { +"Highlights" }; textArea { name = "highlights"; +(attraction?.highlights ?: "") }
-                label { +"Latitude" }; numberInput(name = "lat") { step = "any"; value = attraction?.latitude?.toString() ?: "" }
-                label { +"Longitude" }; numberInput(name = "lng") { step = "any"; value = attraction?.longitude?.toString() ?: "" }
-                label { +"Open Hours" }; textInput(name = "openHours") { value = attraction?.openHours ?: "" }
-                label { +"Featured" }; checkBoxInput(name = "isFeatured") { checked = attraction?.isFeatured == true }
-                label { +"Status" }; select { name = "status"; RecordStatus.entries.forEach { s -> option { value = s.name; +s.name; if (attraction?.status == s || (attraction == null && s == RecordStatus.ACTIVE)) selected = true } } }
-                button { +"Save" }
-            }
-        }
+        ctx.call.renderView(
+            "admin/attraction-form.html",
+            mapOf(
+                "pageTitle" to if (attractionFormId == null) "Create Attraction" else "Edit Attraction",
+                "activeNav" to "attractions",
+                "attraction" to attraction,
+                "cities" to cities,
+                "areas" to areas,
+                "statuses" to RecordStatus.entries
+            )
+        )
     }
 
     suspend fun save(ctx: RoutingContext, id: Long?) {
@@ -82,17 +63,9 @@ class AttractionController(
     }
 
     suspend fun detail(ctx: RoutingContext, id: Long) {
-        val session = ctx.call.sessions.get<AdminSession>()
         val attr = contentService.getAttraction(id) ?: return ctx.call.respondRedirect("/admin/attractions")
         val photos = contentService.photos(id)
-        ctx.call.renderPage("Attraction Detail", session) {
-            h3 { +attr.name }
-            p { +attr.description }
-            p { +"Highlights: ${attr.highlights}" }
-            a("/admin/attractions/$id/photos", classes = "btn") { +"Manage Photos" }
-            form(action = "/admin/attractions/$id/archive", method = kotlinx.html.FormMethod.post) { button(classes = "btn-danger") { +"Archive attraction" } }
-            div("gallery") { photos.forEach { img(src = it.imagePath, alt = "photo") { classes = setOf("preview") } } }
-        }
+        ctx.call.renderView("admin/attraction-detail.html", mapOf("pageTitle" to "Attraction Detail", "activeNav" to "attractions", "attraction" to attr, "photos" to photos))
     }
 
     suspend fun archive(ctx: RoutingContext, id: Long) {
@@ -101,24 +74,8 @@ class AttractionController(
     }
 
     suspend fun photosPage(ctx: RoutingContext, attractionId: Long) {
-        val session = ctx.call.sessions.get<AdminSession>()
         val photos = contentService.photos(attractionId)
-        ctx.call.renderPage("Photo Management", session) {
-            form(action = "/admin/attractions/$attractionId/photos", encType = kotlinx.html.FormEncType.multipartFormData, method = kotlinx.html.FormMethod.post) {
-                fileInput(name = "photos") { multiple = true; accept = "image/*"; id = "photoInput" }
-                div { id = "previewContainer" }
-                button { +"Upload" }
-            }
-            ul {
-                photos.forEach { p ->
-                    li {
-                        +"#${p.sortOrder} "
-                        img(src = p.imagePath, alt = "photo") { classes = setOf("thumb") }
-                        form(action = "/admin/photos/${p.id}/delete", method = kotlinx.html.FormMethod.post) { button(classes = "btn-danger") { +"Delete" } }
-                    }
-                }
-            }
-        }
+        ctx.call.renderView("admin/photo-management.html", mapOf("pageTitle" to "Photo Management", "activeNav" to "attractions", "attractionId" to attractionId, "photos" to photos))
     }
 
     suspend fun uploadPhotos(ctx: RoutingContext, attractionId: Long) {
