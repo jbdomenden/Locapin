@@ -6,9 +6,12 @@ This repository contains:
 
 ## Android Studio run configuration fix
 If you see `Unknown run configuration type KtorApplicationConfigurationType` while trying to run mobile code:
-1. Open the **repository root** and wait for Gradle sync to finish.
-2. Select the Android run configuration **app** (not `EngineMain`).
-3. If needed, open only `android/` as a standalone project.
+1. Close Android Studio.
+2. Delete stale local config files under `.idea/runConfigurations/` and remove the unknown entry from `.idea/workspace.xml` (local machine only, not committed).
+3. Re-open the project and use one of the checked-in run configs from `.run/`:
+   - `Backend (Gradle)`
+   - `Android App Assemble (Gradle)`
+4. For emulator launch/debug, open `android/` as a standalone project and run module `app`.
 
 The root `settings.gradle.kts` includes `includeBuild("android")` so Android modules are discoverable when opening the repository root.
 
