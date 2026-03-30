@@ -1,0 +1,6 @@
+<h3>{{attractionName}}</h3>
+<p>{{attractionDescription}}</p>
+<p>Highlights: {{attractionHighlights}}</p>
+<a class="btn" href="/admin/attractions/{{attractionId}}/photos">Manage Photos</a>
+<form action="/admin/attractions/{{attractionId}}/archive" method="post"><button class="btn-danger" type="submit">Archive attraction</button></form>
+<div class="gallery">{{photoGallery}}</div>

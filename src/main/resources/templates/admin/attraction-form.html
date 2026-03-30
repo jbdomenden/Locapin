@@ -1,0 +1,12 @@
+<form action="{{formAction}}" method="post">
+<label>City</label><select name="cityId" id="citySelect" data-area-target="areaSelect">{{cityOptions}}</select>
+<label>Area</label><select name="areaId" id="areaSelect">{{areaOptions}}</select>
+<label>Name</label><input type="text" name="name" required value="{{attractionName}}" />
+<label>Description</label><textarea name="description">{{attractionDescription}}</textarea>
+<label>Highlights</label><textarea name="highlights">{{attractionHighlights}}</textarea>
+<label>Latitude</label><input type="number" step="any" name="lat" value="{{attractionLat}}" />
+<label>Longitude</label><input type="number" step="any" name="lng" value="{{attractionLng}}" />
+<label>Open Hours</label><input type="text" name="openHours" value="{{attractionOpenHours}}" />
+<label><input type="checkbox" name="isFeatured" {{featuredChecked}} /> Featured</label>
+<label>Status</label><select name="status">{{statusOptions}}</select>
+<button type="submit">Save</button></form>

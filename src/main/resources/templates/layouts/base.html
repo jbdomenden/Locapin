@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+{{> partials/head.html}}
+</head>
+<body>
+<div class="app-shell">
+{{> partials/sidebar.html}}
+<div class="main">
+{{> partials/topbar.html}}
+<main class="content">
+{{> partials/flash.html}}
+{{content}}
+</main>
+</div>
+</div>
+{{> partials/scripts.html}}
+</body>
+</html>

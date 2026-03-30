@@ -1,0 +1,6 @@
+<form action="/admin/attractions/{{attractionId}}/photos" method="post" enctype="multipart/form-data">
+<input id="photoInput" type="file" name="photos" accept="image/*" multiple />
+<div id="previewContainer"></div>
+<button type="submit">Upload</button>
+</form>
+<ul>{{photoRows}}</ul>

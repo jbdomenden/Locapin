@@ -1,0 +1,8 @@
+<form action="{{formAction}}" method="post">
+<label>City</label><select name="cityId">{{cityOptions}}</select>
+<label>Name</label><input type="text" name="name" required value="{{areaName}}" />
+<label>Latitude</label><input type="number" step="any" name="lat" value="{{areaLat}}" />
+<label>Longitude</label><input type="number" step="any" name="lng" value="{{areaLng}}" />
+<label>Boundary Data</label><textarea name="boundary"></textarea>
+<label>Status</label><select name="status">{{statusOptions}}</select>
+<button type="submit">Save</button></form>

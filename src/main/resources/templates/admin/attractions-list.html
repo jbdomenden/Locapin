@@ -1,0 +1,3 @@
+<a class="btn" href="/admin/attractions/new">Add Attraction</a>
+<form action="/admin/attractions" method="get"><input type="text" name="search" value="{{search}}" placeholder="Search by name" /><select name="cityId"><option value="">All cities</option>{{cityOptions}}</select><button type="submit">Apply</button></form>
+<table><tr><th>Name</th><th>City</th><th>Area</th><th>Status</th><th>Featured</th><th>Actions</th></tr>{{attractionRows}}</table>
