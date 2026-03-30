@@ -1,0 +1,1 @@
+(async()=>{if(!document.getElementById('citiesBody'))return;const rows=await api.get('/admin/api/cities');citiesBody.innerHTML=rows.map(r=>`<tr><td>${r.id}</td><td>${r.name}</td><td>${r.isPremium}</td><td>${r.status}</td><td><a href='/admin/cities/${r.id}/edit'>Edit</a></td></tr>`).join('')})();

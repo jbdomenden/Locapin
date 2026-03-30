@@ -1,89 +1,98 @@
 package locapin.admin.models
 
-import org.jetbrains.exposed.dao.id.LongIdTable
-import org.jetbrains.exposed.sql.javatime.datetime
-import org.jetbrains.exposed.sql.javatime.date
+import org.jetbrains.exposed.sql.ReferenceOption
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.javatime.timestamp
 
-object AdminUsers : LongIdTable("admin_users") {
-    val fullName = varchar("full_name", 150)
-    val email = varchar("email", 180).uniqueIndex()
-    val passwordHash = varchar("password_hash", 255)
-    val role = enumerationByName("role", 32, AdminRole::class)
-    val status = enumerationByName("status", 32, RecordStatus::class).default(RecordStatus.ACTIVE)
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
+object AdminUsersTable : Table("admin_users") {
+    val id = long("id").autoIncrement()
+    val name = varchar("name", 120)
+    val email = varchar("email", 255).uniqueIndex()
+    val passwordHash = varchar("password_hash", 100)
+    val role = enumerationByName("role", 30, AdminRole::class)
+    val isActive = bool("is_active").default(true)
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+    override val primaryKey = PrimaryKey(id)
 }
 
-object Cities : LongIdTable("cities") {
+object CitiesTable : Table("cities") {
+    val id = long("id").autoIncrement()
     val name = varchar("name", 120).uniqueIndex()
     val isPremium = bool("is_premium").default(false)
-    val status = enumerationByName("status", 32, RecordStatus::class).default(RecordStatus.ACTIVE)
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
+    val status = enumerationByName("status", 20, EntityStatus::class).default(EntityStatus.ACTIVE)
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+    override val primaryKey = PrimaryKey(id)
 }
 
-object Areas : LongIdTable("areas") {
-    val cityId = reference("city_id", Cities)
+object AreasTable : Table("areas") {
+    val id = long("id").autoIncrement()
+    val cityId = long("city_id").references(CitiesTable.id, onDelete = ReferenceOption.RESTRICT)
     val name = varchar("name", 120)
     val centerLatitude = double("center_latitude")
     val centerLongitude = double("center_longitude")
     val boundaryData = text("boundary_data").nullable()
-    val status = enumerationByName("status", 32, RecordStatus::class).default(RecordStatus.ACTIVE)
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
-
-    init {
-        uniqueIndex(cityId, name)
-    }
+    val status = enumerationByName("status", 20, EntityStatus::class).default(EntityStatus.ACTIVE)
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+    init { uniqueIndex(cityId, name) }
+    override val primaryKey = PrimaryKey(id)
 }
 
-object Attractions : LongIdTable("attractions") {
-    val cityId = reference("city_id", Cities)
-    val areaId = reference("area_id", Areas)
+object AttractionsTable : Table("attractions") {
+    val id = long("id").autoIncrement()
+    val cityId = long("city_id").references(CitiesTable.id, onDelete = ReferenceOption.RESTRICT)
+    val areaId = long("area_id").references(AreasTable.id, onDelete = ReferenceOption.RESTRICT)
     val name = varchar("name", 180)
     val description = text("description")
     val highlights = text("highlights")
     val latitude = double("latitude")
     val longitude = double("longitude")
-    val openHours = varchar("open_hours", 120).nullable()
-    val status = enumerationByName("status", 32, RecordStatus::class).default(RecordStatus.ACTIVE)
+    val openHours = varchar("open_hours", 255).nullable()
+    val status = enumerationByName("status", 20, EntityStatus::class).default(EntityStatus.ACTIVE)
     val isFeatured = bool("is_featured").default(false)
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
+    val isDeleted = bool("is_deleted").default(false)
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+    override val primaryKey = PrimaryKey(id)
 }
 
-object AttractionPhotos : LongIdTable("attraction_photos") {
-    val attractionId = reference("attraction_id", Attractions)
-    val imagePath = varchar("image_path", 300)
-    val sortOrder = integer("sort_order").default(0)
-    val createdAt = datetime("created_at")
+object AttractionPhotosTable : Table("attraction_photos") {
+    val id = long("id").autoIncrement()
+    val attractionId = long("attraction_id").references(AttractionsTable.id, onDelete = ReferenceOption.CASCADE)
+    val imagePath = varchar("image_path", 400)
+    val sortOrder = integer("sort_order")
+    val createdAt = timestamp("created_at")
+    override val primaryKey = PrimaryKey(id)
 }
 
-object Users : LongIdTable("users") {
-    val name = varchar("name", 120)
-    val email = varchar("email", 180).uniqueIndex()
-    val passwordHash = varchar("password_hash", 255)
-    val subscriptionType = enumerationByName("subscription_type", 24, UserSubscriptionType::class)
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
+object UsersTable : Table("users") {
+    val id = long("id").autoIncrement()
+    val fullName = varchar("full_name", 120)
+    val email = varchar("email", 255).uniqueIndex()
+    val createdAt = timestamp("created_at")
+    override val primaryKey = PrimaryKey(id)
 }
 
-object SubscriptionPlans : LongIdTable("subscription_plans") {
+object SubscriptionPlansTable : Table("subscription_plans") {
+    val id = long("id").autoIncrement()
     val name = varchar("name", 120).uniqueIndex()
     val description = text("description")
     val price = decimal("price", 10, 2)
-    val billingPeriod = enumerationByName("billing_period", 24, BillingPeriod::class)
+    val billingPeriod = enumerationByName("billing_period", 20, BillingPeriod::class)
     val isActive = bool("is_active").default(true)
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+    override val primaryKey = PrimaryKey(id)
 }
 
-object Subscriptions : LongIdTable("subscriptions") {
-    val userId = reference("user_id", Users)
-    val planId = reference("plan_id", SubscriptionPlans)
-    val status = enumerationByName("status", 24, SubscriptionStatus::class)
-    val startDate = date("start_date")
-    val endDate = date("end_date").nullable()
-    val createdAt = datetime("created_at")
-    val updatedAt = datetime("updated_at")
+object SubscriptionsTable : Table("subscriptions") {
+    val id = long("id").autoIncrement()
+    val userId = long("user_id").references(UsersTable.id, onDelete = ReferenceOption.CASCADE)
+    val planId = long("plan_id").references(SubscriptionPlansTable.id, onDelete = ReferenceOption.RESTRICT)
+    val isActive = bool("is_active").default(true)
+    val startedAt = timestamp("started_at")
+    val expiresAt = timestamp("expires_at").nullable()
+    override val primaryKey = PrimaryKey(id)
 }

@@ -1,15 +1,18 @@
 package locapin.admin.plugins
 
-import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.call
 import io.ktor.server.application.install
+import io.ktor.server.plugins.BadRequestException
 import io.ktor.server.plugins.statuspages.StatusPages
-import locapin.admin.templates.renderView
+import io.ktor.server.response.respond
+import io.ktor.server.response.respondFile
+import java.io.File
 
 fun Application.configureStatusPages() {
     install(StatusPages) {
-        status(HttpStatusCode.Forbidden) { call, _ -> call.renderView("errors/403.html", mapOf("pageTitle" to "403 Forbidden")) }
-        status(HttpStatusCode.NotFound) { call, _ -> call.renderView("errors/404.html", mapOf("pageTitle" to "404 Not Found")) }
-        exception<Throwable> { call, _ -> call.renderView("errors/500.html", mapOf("pageTitle" to "500 Server Error")) }
+        exception<BadRequestException> { call, cause -> call.respond(mapOf("success" to false, "message" to cause.message)) }
+        exception<Throwable> { call, _ -> call.respondFile(File("src/main/resources/static/html/500.html")) }
+        status(io.ktor.http.HttpStatusCode.NotFound) { call, _ -> call.respondFile(File("src/main/resources/static/html/404.html")) }
     }
 }

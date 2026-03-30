@@ -1,0 +1,1 @@
+(async()=>{if(!document.getElementById('dashboardStats'))return;const s=await api.get('/admin/api/dashboard/stats');dashboardStats.innerHTML=['totalCities','totalAreas','totalAttractions','totalPhotos','totalUsers','totalPremiumSubscribers'].map(k=>`<div class="card"><b>${k}</b><div>${s[k]}</div></div>`).join('');})();
