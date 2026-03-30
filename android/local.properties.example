@@ -1,0 +1,3 @@
+## Copy values into local.properties (not committed) or ~/.gradle/gradle.properties
+LOCAPIN_API_BASE_URL=https://example.com/
+MAPS_API_KEY=YOUR_MAPS_KEY
