@@ -5,6 +5,7 @@ import locapin.admin.models.AdminUsersTable
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.update
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
@@ -21,6 +22,10 @@ class AdminRepository {
         AdminUsersTable.selectAll().where { AdminUsersTable.email eq email }.singleOrNull()?.toRecord()
     }
 
+    fun findById(id: Long): AdminUserRecord? = transaction {
+        AdminUsersTable.selectAll().where { AdminUsersTable.id eq id }.singleOrNull()?.toRecord()
+    }
+
     fun create(name: String, email: String, passwordHash: String, role: AdminRole): Long = transaction {
         AdminUsersTable.insert {
             it[AdminUsersTable.name] = name
@@ -31,5 +36,12 @@ class AdminRepository {
             it[createdAt] = Instant.now()
             it[updatedAt] = Instant.now()
         }[AdminUsersTable.id]
+    }
+
+    fun updatePassword(adminId: Long, passwordHash: String): Boolean = transaction {
+        AdminUsersTable.update({ AdminUsersTable.id eq adminId }) {
+            it[AdminUsersTable.passwordHash] = passwordHash
+            it[updatedAt] = Instant.now()
+        } > 0
     }
 }
