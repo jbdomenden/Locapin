@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="220" height="72" viewBox="0 0 220 72" role="img" aria-label="LocaPin">
-  <defs>
-    <linearGradient id="g" x1="0" x2="1">
-      <stop offset="0%" stop-color="#ef7c6d"/>
-      <stop offset="100%" stop-color="#cf8b9a"/>
-    </linearGradient>
-  </defs>
-  <rect x="1" y="1" width="218" height="70" rx="18" fill="#fff7fb" stroke="#ecdce4"/>
-  <circle cx="36" cy="36" r="14" fill="url(#g)"/>
-  <circle cx="36" cy="36" r="5" fill="#fff"/>
-  <text x="58" y="44" font-family="Inter, Arial, sans-serif" font-size="28" font-weight="700" fill="#2f2430">LocaPin</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="60" viewBox="0 0 220 60"><rect rx="18" width="220" height="60" fill="#F6D2CF"/><text x="24" y="38" font-family="Arial" font-size="28" fill="#B54A64">LocaPin Admin</text></svg>

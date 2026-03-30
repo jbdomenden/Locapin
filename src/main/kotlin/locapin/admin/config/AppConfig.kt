@@ -17,23 +17,29 @@ data class AppConfig(
     companion object {
         fun load(): AppConfig {
             val env = dotenv {
-                ignoreIfMalformed = false
+                ignoreIfMalformed = true
                 ignoreIfMissing = true
             }
-            fun required(key: String): String =
-                env[key] ?: System.getenv(key) ?: error("Missing required environment variable: $key")
+            fun read(key: String, required: Boolean = true, default: String? = null): String {
+                return System.getenv(key)
+                    ?: env[key]
+                    ?: default
+                    ?: if (required) error("Missing required environment variable: $key") else ""
+            }
+            val secret = read("SESSION_SECRET")
+            require(secret.length >= 32) { "SESSION_SECRET must be at least 32 characters." }
 
             return AppConfig(
-                dbUrl = required("DB_URL"),
-                dbUser = required("DB_USER"),
-                dbPassword = required("DB_PASSWORD"),
-                adminInitialName = required("ADMIN_INITIAL_NAME"),
-                adminInitialEmail = required("ADMIN_INITIAL_EMAIL"),
-                adminInitialPassword = required("ADMIN_INITIAL_PASSWORD"),
-                sessionSecret = required("SESSION_SECRET"),
-                appEnv = required("APP_ENV"),
-                appPort = required("APP_PORT").toInt(),
-                fileUploadDir = required("FILE_UPLOAD_DIR")
+                dbUrl = read("DB_URL"),
+                dbUser = read("DB_USER"),
+                dbPassword = read("DB_PASSWORD"),
+                adminInitialName = read("ADMIN_INITIAL_NAME"),
+                adminInitialEmail = read("ADMIN_INITIAL_EMAIL"),
+                adminInitialPassword = read("ADMIN_INITIAL_PASSWORD"),
+                sessionSecret = secret,
+                appEnv = read("APP_ENV", required = false, default = "development"),
+                appPort = read("APP_PORT", required = false, default = "9000").toInt(),
+                fileUploadDir = read("FILE_UPLOAD_DIR", required = false, default = "uploads")
             )
         }
     }

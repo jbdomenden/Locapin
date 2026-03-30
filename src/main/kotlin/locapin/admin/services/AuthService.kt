@@ -1,14 +1,13 @@
 package locapin.admin.services
 
-import locapin.admin.models.AdminUser
+import locapin.admin.models.AdminSessionUser
 import locapin.admin.repositories.AdminRepository
 import locapin.admin.utils.Passwords
-import org.jetbrains.exposed.sql.transactions.transaction
 
-class AuthService(private val repo: AdminRepository = AdminRepository()) {
-    fun authenticate(email: String, password: String): AdminUser? = transaction {
-        val user = repo.findByEmail(email) ?: return@transaction null
-        if (!Passwords.verify(password, user.passwordHash)) return@transaction null
-        user
+class AuthService(private val adminRepository: AdminRepository = AdminRepository()) {
+    fun login(email: String, password: String): AdminSessionUser? {
+        val admin = adminRepository.findByEmail(email.trim().lowercase()) ?: return null
+        if (!Passwords.verify(password, admin.passwordHash)) return null
+        return AdminSessionUser(admin.id, admin.name, admin.email, admin.role)
     }
 }

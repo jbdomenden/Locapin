@@ -1,0 +1,2 @@
+(async()=>{if(!document.getElementById('plansBody'))return;const rows=await api.get('/admin/api/plans');plansBody.innerHTML=rows.map(r=>`<tr><td>${r.id}</td><td>${r.name}</td><td>${r.price}</td><td>${r.billingPeriod}</td><td>${r.isActive}</td></tr>`).join('')})();
+async function createPlan(){const p={name:planName.value,description:planDescription.value,price:+planPrice.value,billingPeriod:billingPeriod.value,isActive:planActive.checked};await api.post('/admin/api/plans',p);location.reload()}

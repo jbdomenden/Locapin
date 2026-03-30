@@ -1,35 +1,35 @@
 package locapin.admin.repositories
 
-import locapin.admin.models.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import locapin.admin.models.AdminRole
+import locapin.admin.models.AdminUsersTable
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
-import java.time.LocalDateTime
+import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.Instant
+
+data class AdminUserRecord(val id: Long, val name: String, val email: String, val passwordHash: String, val role: AdminRole)
 
 class AdminRepository {
-    fun anyAdminExists(): Boolean = AdminUsers.selectAll().limit(1).any()
+    private fun ResultRow.toRecord() = AdminUserRecord(
+        this[AdminUsersTable.id], this[AdminUsersTable.name], this[AdminUsersTable.email], this[AdminUsersTable.passwordHash], this[AdminUsersTable.role]
+    )
 
-    fun create(fullName: String, email: String, passwordHash: String, role: AdminRole, status: RecordStatus, now: LocalDateTime) {
-        AdminUsers.insert {
-            it[AdminUsers.fullName] = fullName
-            it[AdminUsers.email] = email.lowercase()
-            it[AdminUsers.passwordHash] = passwordHash
-            it[AdminUsers.role] = role
-            it[AdminUsers.status] = status
-            it[createdAt] = now
-            it[updatedAt] = now
-        }
+    fun count(): Long = transaction { AdminUsersTable.selectAll().count() }
+
+    fun findByEmail(email: String): AdminUserRecord? = transaction {
+        AdminUsersTable.selectAll().where { AdminUsersTable.email eq email }.singleOrNull()?.toRecord()
     }
 
-    fun findByEmail(email: String): AdminUser? = AdminUsers.selectAll().where { AdminUsers.email eq email.lowercase() }
-        .map {
-            AdminUser(
-                id = it[AdminUsers.id].value,
-                fullName = it[AdminUsers.fullName],
-                email = it[AdminUsers.email],
-                passwordHash = it[AdminUsers.passwordHash],
-                role = it[AdminUsers.role],
-                status = it[AdminUsers.status]
-            )
-        }.singleOrNull()
+    fun create(name: String, email: String, passwordHash: String, role: AdminRole): Long = transaction {
+        AdminUsersTable.insert {
+            it[AdminUsersTable.name] = name
+            it[AdminUsersTable.email] = email
+            it[AdminUsersTable.passwordHash] = passwordHash
+            it[AdminUsersTable.role] = role
+            it[isActive] = true
+            it[createdAt] = Instant.now()
+            it[updatedAt] = Instant.now()
+        }[AdminUsersTable.id]
+    }
 }
