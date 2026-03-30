@@ -36,6 +36,13 @@ interface LocaPinApi {
     @GET("categories")
     suspend fun categories(): ApiEnvelope<List<CategoryDto>>
 
+
+    @GET("map/areas")
+    suspend fun mapAreas(): ApiEnvelope<List<MapAreaDto>>
+
+    @GET("map/attractions")
+    suspend fun mapAttractions(): ApiEnvelope<List<MapAttractionDto>>
+
     @GET("favorites")
     suspend fun favorites(): ApiEnvelope<List<DestinationDto>>
 

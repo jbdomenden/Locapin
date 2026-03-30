@@ -115,7 +115,6 @@ fun LocaPinRoot(hasLocationPermission: Boolean, requestLocationPermission: () ->
             composable(Routes.Explore) { ExploreScreen(vm, onDetails = { navController.navigate("${Routes.DestinationDetailsBase}/$it") }) }
             composable(Routes.Map) {
                 MapScreen(
-                    vm = vm,
                     hasLocationPermission = hasLocationPermission,
                     requestPermission = requestLocationPermission,
                     onDetails = { navController.navigate("${Routes.DestinationDetailsBase}/$it") }

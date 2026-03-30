@@ -65,3 +65,31 @@ data class DestinationQuery(
     val lat: Double? = null,
     val lng: Double? = null
 )
+
+
+@Serializable
+data class MapPointDto(
+    val x: Float,
+    val y: Float
+)
+
+@Serializable
+data class MapAreaDto(
+    val id: String,
+    val displayName: String,
+    val polygon: List<MapPointDto>,
+    val center: MapPointDto
+)
+
+@Serializable
+data class MapAttractionDto(
+    val id: String,
+    val name: String,
+    val knownFor: String,
+    val latitude: Double,
+    val longitude: Double,
+    val areaId: String,
+    val imageUrl: String? = null,
+    val category: String? = null,
+    val mapPoint: MapPointDto
+)

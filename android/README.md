@@ -43,3 +43,8 @@ Adjust only `LocaPinApi` DTOs/routes if backend shape differs; the repository/do
 ## Branding assets
 - App uses `ic_locapin_logo.xml` for launcher/splash/auth branding hook points.
 - Raw provided brand asset copied as `res/raw/locapin_logo.svg` for future richer branding usage.
+
+
+## Segmented Map integration note
+- The segmented San Juan experience is wired to the existing bottom navigation **Map** entry (`Routes.Map`).
+- Temporary area/attraction seeds are isolated in `data/local/SanJuanSeedDataSource.kt` and automatically replaced by backend data when `GET /map/areas` and `GET /map/attractions` are available.
