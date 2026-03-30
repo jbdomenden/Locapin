@@ -1,24 +1,21 @@
 package locapin.admin.services
 
 import io.ktor.http.content.PartData
-import io.ktor.server.application.ApplicationCall
-import io.ktor.server.request.receiveMultipart
+import io.ktor.server.plugins.BadRequestException
+import locapin.admin.utils.Validators
 import java.io.File
 import java.util.UUID
 
-class FileStorageService(private val uploadDir: String) {
-    suspend fun saveImages(call: ApplicationCall): List<String> {
-        val result = mutableListOf<String>()
-        call.receiveMultipart().forEachPart { part ->
-            if (part is PartData.FileItem && part.name == "photos") {
-                val ext = File(part.originalFileName ?: "image.jpg").extension.ifBlank { "jpg" }
-                val targetName = "${UUID.randomUUID()}.$ext"
-                val target = File(uploadDir, targetName)
-                part.streamProvider().use { input -> target.outputStream().buffered().use { input.copyTo(it) } }
-                result += "/uploads/$targetName"
-            }
-            part.dispose()
-        }
-        return result
+class FileStorageService(private val uploadRoot: String) {
+    init { File(uploadRoot).mkdirs() }
+
+    fun saveImage(part: PartData.FileItem): String {
+        Validators.requireImage(part.contentType?.toString())
+        val extension = part.originalFileName?.substringAfterLast('.', "jpg") ?: "jpg"
+        val fileName = "${UUID.randomUUID()}.$extension"
+        val target = File(uploadRoot, fileName)
+        part.streamProvider().use { input -> target.outputStream().buffered().use { input.copyTo(it) } }
+        if (!target.exists()) throw BadRequestException("Failed to save file")
+        return "/uploads/$fileName"
     }
 }

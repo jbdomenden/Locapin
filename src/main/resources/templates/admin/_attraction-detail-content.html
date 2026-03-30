@@ -1,6 +1,0 @@
-<h3>${attraction.name}</h3>
-<p>${attraction.description}</p>
-<p>Highlights: ${attraction.highlights}</p>
-<a class="btn" href="/admin/attractions/${attraction.id}/photos">Manage Photos</a>
-<form action="/admin/attractions/${attraction.id}/archive" method="post"><button type="submit" class="btn-danger">Archive attraction</button></form>
-<div class="gallery"><#list photos as p><img src="${p.imagePath}" alt="photo" class="preview" /></#list></div>

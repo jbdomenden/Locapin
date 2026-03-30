@@ -1,35 +1,29 @@
 package locapin.admin
 
 import io.ktor.server.application.Application
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
 import locapin.admin.config.AppConfig
 import locapin.admin.db.DatabaseFactory
-import locapin.admin.plugins.configureHttp
-import locapin.admin.plugins.configureMonitoring
+import locapin.admin.plugins.configureHTTP
+import locapin.admin.plugins.configureRouting
 import locapin.admin.plugins.configureSecurity
 import locapin.admin.plugins.configureSerialization
 import locapin.admin.plugins.configureStatusPages
-import locapin.admin.plugins.configureTemplating
-import locapin.admin.routes.configureRoutes
+import locapin.admin.services.BootstrapService
 
-fun main() {
-    val config = AppConfig.load()
-    embeddedServer(Netty, port = config.appPort, host = "0.0.0.0") {
-        module(config)
-    }.start(wait = true)
+fun main(args: Array<String>) {
+    io.ktor.server.netty.EngineMain.main(args)
 }
 
-fun Application.module(config: AppConfig = AppConfig.load()) {
-    configureMonitoring()
-    configureHttp()
+fun Application.module() {
+    val appConfig = AppConfig.load()
+    environment.log.info("Starting LocaPin admin in ${appConfig.appEnv} on port ${appConfig.appPort}")
+
+    DatabaseFactory.init(appConfig)
+    BootstrapService(appConfig).bootstrap()
+
     configureSerialization()
-    configureTemplating()
+    configureHTTP()
+    configureSecurity(appConfig)
     configureStatusPages()
-    configureSecurity(config)
-
-    DatabaseFactory.init(config)
-    DatabaseFactory.seed(config)
-
-    configureRoutes(config)
+    configureRouting(appConfig)
 }
