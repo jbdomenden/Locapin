@@ -12,6 +12,9 @@ import java.io.File
 
 class PageRoutes(private val resourcesRoot: File = File("src/main/resources/static/html")) {
     fun register(route: Route) {
+        route.get("/") {
+            call.respondRedirect("/admin/login")
+        }
         route.get("/admin/login") {
             if (call.sessions.get<AdminSession>() != null) call.respondRedirect("/admin/dashboard")
             else call.respondFile(File(resourcesRoot, "login.html"))

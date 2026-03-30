@@ -1,6 +1,7 @@
 package locapin.admin.plugins
 
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCallPipeline
 import io.ktor.server.application.call
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.response.respond
@@ -30,7 +31,7 @@ fun Application.configureRouting(config: AppConfig) {
         PageRoutes().register(this)
 
         route("/admin/api") {
-            intercept(io.ktor.util.pipeline.PipelinePhase("ApiAdminAuth")) {
+            intercept(ApplicationCallPipeline.Plugins) {
                 if (call.sessions.get<AdminSession>() == null) {
                     call.respond(io.ktor.http.HttpStatusCode.Unauthorized, mapOf("success" to false, "message" to "Unauthenticated"))
                     finish()
