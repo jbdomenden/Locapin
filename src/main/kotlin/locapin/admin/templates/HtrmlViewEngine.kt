@@ -76,7 +76,7 @@ suspend fun ApplicationCall.renderTemplate(
     val activeNav = model["activeNav"]?.toString().orEmpty()
     val base = mapOf(
         "pageTitle" to (model["pageTitle"]?.toString() ?: "LocaPin Admin"),
-        "adminName" to (admin?.fullName ?: ""),
+        "adminName" to (admin?.email ?: ""),
         "dashboardActiveClass" to if (activeNav == "dashboard") "active" else "",
         "citiesActiveClass" to if (activeNav == "cities") "active" else "",
         "areasActiveClass" to if (activeNav == "areas") "active" else "",
