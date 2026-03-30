@@ -11,9 +11,12 @@ If you see `Unknown run configuration type KtorApplicationConfigurationType` whi
 3. Re-open the project and use one of the checked-in run configs from `.run/`:
    - `Backend (Gradle)`
    - `Android App Assemble (Gradle)`
-4. For emulator launch/debug, open `android/` as a standalone project and run module `app`.
+4. Fix SDK path error by setting one of the following:
+   - `ANDROID_HOME` or `ANDROID_SDK_ROOT` environment variable, or
+   - `android/local.properties` with `sdk.dir=C\\Users\\<you>\\AppData\\Local\\Android\\Sdk` on Windows.
+5. For emulator launch/debug, open `android/` as a standalone project and run module `app`.
 
-The root `settings.gradle.kts` includes `includeBuild("android")` so Android modules are discoverable when opening the repository root.
+The root `settings.gradle.kts` includes the Android composite build **only when SDK path is configured**, so backend sync does not fail on non-Android environments.
 
 ---
 

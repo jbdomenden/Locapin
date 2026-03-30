@@ -17,9 +17,16 @@ Production-ready Jetpack Compose Android client for LocaPin end users.
    LOCAPIN_API_BASE_URL=https://<your-ktor-host>/
    MAPS_API_KEY=<your_google_maps_key>
    ```
-3. Ensure backend API endpoints align with `LocaPinApi` routes in:
+3. Ensure Android SDK path is configured (required):
+   - via `ANDROID_HOME` / `ANDROID_SDK_ROOT`, or
+   - via `android/local.properties`:
+   ```properties
+   sdk.dir=C\Users\<you>\AppData\Local\Android\Sdk
+   ```
+4. Ensure backend API endpoints align with `LocaPinApi` routes in:
+
    - `app/src/main/java/com/locapin/mobile/data/remote/LocaPinApi.kt`
-4. Sync and run on Pixel 8 emulator.
+5. Sync and run on Pixel 8 emulator.
 
 ## Backend route assumptions
 The current client assumes:
