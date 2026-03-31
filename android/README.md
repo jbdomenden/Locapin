@@ -48,3 +48,19 @@ Adjust only `LocaPinApi` DTOs/routes if backend shape differs; the repository/do
 ## Segmented Map integration note
 - The segmented San Juan experience is wired to the existing bottom navigation **Map** entry (`Routes.Map`).
 - Temporary area/attraction seeds are isolated in `data/local/SanJuanSeedDataSource.kt` and automatically replaced by backend data when `GET /map/areas` and `GET /map/attractions` are available.
+
+## Troubleshooting Gradle zip errors
+If Android Studio/Gradle fails during configuration with:
+
+`java.util.zip.ZipException: zip END header not found`
+
+one of the cached Gradle artifacts is usually truncated/corrupted. From the repository root, run:
+
+```bash
+./gradlew --stop
+rm -rf ~/.gradle/caches
+rm -rf ~/.gradle/wrapper/dists
+./gradlew -p android :app:help --refresh-dependencies
+```
+
+Then re-sync the Android project in Android Studio.
