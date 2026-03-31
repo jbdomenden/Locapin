@@ -16,7 +16,7 @@ class BootstrapService(private val config: AppConfig) {
     fun bootstrap() {
         if (adminRepository.count() == 0L) {
             adminRepository.create(
-                name = config.adminInitialName,
+                fullName = config.adminInitialName,
                 email = config.adminInitialEmail.lowercase(),
                 passwordHash = Passwords.hash(config.adminInitialPassword),
                 role = AdminRole.SUPER_ADMIN

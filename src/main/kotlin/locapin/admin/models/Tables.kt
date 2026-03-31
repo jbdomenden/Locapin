@@ -6,13 +6,29 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 
 object AdminUsersTable : Table("admin_users") {
     val id = long("id").autoIncrement()
-    val name = varchar("name", 120)
+    val fullName = varchar("full_name", 120)
     val email = varchar("email", 255).uniqueIndex()
     val passwordHash = varchar("password_hash", 100)
     val role = enumerationByName("role", 30, AdminRole::class)
-    val isActive = bool("is_active").default(true)
+    val status = enumerationByName("status", 20, AdminAccountStatus::class).default(AdminAccountStatus.ACTIVE)
+    val createdBy = long("created_by").nullable()
+    val lastLoginAt = timestamp("last_login_at").nullable()
     val createdAt = timestamp("created_at")
     val updatedAt = timestamp("updated_at")
+    override val primaryKey = PrimaryKey(id)
+}
+
+object AdminPermissionsTable : Table("admin_permissions") {
+    val id = long("id").autoIncrement()
+    val adminUserId = long("admin_user_id").references(AdminUsersTable.id, onDelete = ReferenceOption.CASCADE)
+    val moduleKey = enumerationByName("module_key", 40, ModuleKey::class)
+    val canCreate = bool("can_create").default(false)
+    val canRead = bool("can_read").default(false)
+    val canUpdate = bool("can_update").default(false)
+    val canDelete = bool("can_delete").default(false)
+    val createdAt = timestamp("created_at")
+    val updatedAt = timestamp("updated_at")
+    init { uniqueIndex(adminUserId, moduleKey) }
     override val primaryKey = PrimaryKey(id)
 }
 

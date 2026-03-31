@@ -5,6 +5,24 @@ import kotlinx.serialization.Serializable
 @Serializable data class ApiResponse<T>(val success: Boolean, val message: String, val data: T? = null)
 @Serializable data class LoginRequest(val email: String, val password: String)
 @Serializable data class ChangePasswordRequest(val currentPassword: String, val newPassword: String, val confirmNewPassword: String)
+@Serializable data class PermissionItemRequest(val moduleKey: ModuleKey, val canCreate: Boolean, val canRead: Boolean, val canUpdate: Boolean, val canDelete: Boolean)
+@Serializable data class AdminUserCreateRequest(
+    val fullName: String,
+    val email: String,
+    val password: String,
+    val confirmPassword: String,
+    val role: AdminRole,
+    val status: AdminAccountStatus = AdminAccountStatus.ACTIVE,
+    val permissions: List<PermissionItemRequest> = emptyList()
+)
+@Serializable data class AdminUserUpdateRequest(
+    val fullName: String,
+    val email: String,
+    val role: AdminRole,
+    val status: AdminAccountStatus,
+    val permissions: List<PermissionItemRequest> = emptyList()
+)
+@Serializable data class ResetPasswordRequest(val newPassword: String, val confirmNewPassword: String)
 @Serializable data class CityRequest(val name: String, val isPremium: Boolean)
 @Serializable data class StatusRequest(val status: EntityStatus)
 @Serializable data class PremiumRequest(val isPremium: Boolean)
