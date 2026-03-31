@@ -6,5 +6,6 @@ out/
 *.iml
 .env
 uploads/
-website/uploads/
-!website/src/main/resources/static/images/
+local.properties
+*/local.properties
+!src/main/resources/static/images/
