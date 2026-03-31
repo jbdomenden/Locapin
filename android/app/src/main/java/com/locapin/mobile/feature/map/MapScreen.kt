@@ -5,11 +5,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -21,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -29,10 +27,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 @Composable
 fun MapScreen(
     hasLocationPermission: Boolean,
-    requestPermission: () -> Unit,
+    requestPermission: () -> Unit ,
     onDetails: (String) -> Unit,
     vm: SegmentedMapViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     val state by vm.uiState.collectAsStateWithLifecycle()
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     var showSheet by remember { mutableStateOf(false) }
@@ -41,61 +40,56 @@ fun MapScreen(
         vm.onPermissionResult(hasLocationPermission)
     }
 
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    Column(
+        modifier = Modifier.padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
         MapInstruction()
         SegmentedSanJuanMap(
-            areas = state.areas,
-            selectedAreaId = state.selectedAreaId,
+            zones = state.zones,
+            selectedZoneId = state.selectedZoneId,
             visibleAttractions = state.visibleAttractions,
             selectedAttractionId = state.selectedAttractionId,
-            onAreaTapped = {
-                vm.onAreaSelected(it)
+            onZoneTapped = {
+                vm.onZoneSelected(it)
                 showSheet = true
             },
-            onPinTapped = vm::onAttractionSelected
+            onPinTapped = {
+                vm.onAttractionSelected(it)
+                showSheet = true
+            }
         )
 
         if (!hasLocationPermission) {
-            Button(onClick = requestPermission, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)) {
-                Text("Enable location for distance")
-            }
-        }
-
-        state.visibleAttractions.takeIf { it.isNotEmpty() }?.let { areaAttractions ->
-            LazyRow(modifier = Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(areaAttractions) { attraction ->
-                    FilterChip(
-                        selected = attraction.id == state.selectedAttractionId,
-                        onClick = {
-                            vm.onAttractionSelected(attraction.id)
-                            showSheet = true
-                        },
-                        label = { Text(attraction.name) }
-                    )
-                }
+            Button(onClick = requestPermission, modifier = Modifier.fillMaxWidth()) {
+                Text("Enable location for real-time distance")
             }
         }
     }
 
-    if (showSheet && state.selectedAttraction != null) {
-        val attraction = state.selectedAttraction!!
+    val selectedAttraction = state.selectedAttraction
+    if (showSheet && selectedAttraction != null) {
         ModalBottomSheet(
             onDismissRequest = { showSheet = false },
             sheetState = sheetState
         ) {
             Column(
-                Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Text(attraction.name, style = MaterialTheme.typography.titleLarge)
+                Text(selectedAttraction.name, style = MaterialTheme.typography.titleLarge)
                 Text("Known For", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                Text(attraction.knownFor)
-                Text(vm.distanceTextFor(attraction), style = MaterialTheme.typography.bodyMedium)
+                Text(selectedAttraction.knownFor)
+                Text(vm.distanceTextFor(selectedAttraction), style = MaterialTheme.typography.bodyMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(onClick = { onDetails(attraction.id) }) { Text("View full details") }
-                    Button(onClick = { vm.refreshLocation() }) { Text("Refresh distance") }
+                    Button(onClick = { launchDirections(context, selectedAttraction, state.userLocation) }) {
+                        Text("Directions")
+                    }
+                    Button(onClick = vm::refreshLocation) {
+                        Text("Refresh distance")
+                    }
                 }
             }
         }

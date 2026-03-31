@@ -1,10 +1,10 @@
 package com.locapin.mobile.domain.repository
 
 import com.locapin.mobile.core.common.LocaPinResult
-import com.locapin.mobile.domain.model.MapArea
-import com.locapin.mobile.domain.model.MapAttraction
+import com.locapin.mobile.domain.model.MapZone
+import com.locapin.mobile.domain.model.ZoneAttraction
 
 interface SegmentedMapRepository {
-    suspend fun getMapAreas(): LocaPinResult<List<MapArea>>
-    suspend fun getMapAttractions(): LocaPinResult<List<MapAttraction>>
+    suspend fun getMapZones(): LocaPinResult<List<MapZone>>
+    suspend fun getZoneAttractions(): LocaPinResult<List<ZoneAttraction>>
 }

@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.locapin.mobile.core.common.LocaPinResult
 import com.locapin.mobile.core.location.LocationProvider
-import com.locapin.mobile.domain.model.MapArea
-import com.locapin.mobile.domain.model.MapAttraction
+import com.locapin.mobile.domain.model.MapZone
+import com.locapin.mobile.domain.model.ZoneAttraction
 import com.locapin.mobile.domain.repository.SegmentedMapRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -19,18 +19,18 @@ enum class MapPermissionState { UNKNOWN, GRANTED, DENIED }
 
 data class SegmentedMapUiState(
     val isLoading: Boolean = true,
-    val areas: List<MapArea> = emptyList(),
-    val attractions: List<MapAttraction> = emptyList(),
-    val selectedAreaId: String? = null,
+    val zones: List<MapZone> = emptyList(),
+    val attractions: List<ZoneAttraction> = emptyList(),
+    val selectedZoneId: String? = null,
     val selectedAttractionId: String? = null,
     val userLocation: Pair<Double, Double>? = null,
     val permissionState: MapPermissionState = MapPermissionState.UNKNOWN,
     val errorMessage: String? = null
 ) {
-    val visibleAttractions: List<MapAttraction>
-        get() = attractions.filter { it.areaId == selectedAreaId }
+    val visibleAttractions: List<ZoneAttraction>
+        get() = attractions.filter { it.zoneId == selectedZoneId }
 
-    val selectedAttraction: MapAttraction?
+    val selectedAttraction: ZoneAttraction?
         get() = visibleAttractions.firstOrNull { it.id == selectedAttractionId } ?: visibleAttractions.firstOrNull()
 }
 
@@ -49,15 +49,15 @@ class SegmentedMapViewModel @Inject constructor(
     fun loadMapData() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
-            val areas = (repository.getMapAreas() as? LocaPinResult.Success)?.data.orEmpty()
-            val attractions = (repository.getMapAttractions() as? LocaPinResult.Success)?.data.orEmpty()
-            _uiState.value = _uiState.value.copy(isLoading = false, areas = areas, attractions = attractions)
+            val zones = (repository.getMapZones() as? LocaPinResult.Success)?.data.orEmpty()
+            val attractions = (repository.getZoneAttractions() as? LocaPinResult.Success)?.data.orEmpty()
+            _uiState.value = _uiState.value.copy(isLoading = false, zones = zones, attractions = attractions)
         }
     }
 
-    fun onAreaSelected(areaId: String) {
-        val firstAttraction = _uiState.value.attractions.firstOrNull { it.areaId == areaId }
-        _uiState.value = _uiState.value.copy(selectedAreaId = areaId, selectedAttractionId = firstAttraction?.id)
+    fun onZoneSelected(zoneId: String) {
+        val firstAttraction = _uiState.value.attractions.firstOrNull { it.zoneId == zoneId }
+        _uiState.value = _uiState.value.copy(selectedZoneId = zoneId, selectedAttractionId = firstAttraction?.id)
     }
 
     fun onAttractionSelected(attractionId: String) {
@@ -73,17 +73,16 @@ class SegmentedMapViewModel @Inject constructor(
 
     fun refreshLocation() {
         viewModelScope.launch {
-            val location = locationProvider.getLastKnownLocation()
-            _uiState.value = _uiState.value.copy(userLocation = location)
+            _uiState.value = _uiState.value.copy(userLocation = locationProvider.getLastKnownLocation())
         }
     }
 
-    fun distanceTextFor(attraction: MapAttraction): String {
+    fun distanceTextFor(attraction: ZoneAttraction): String {
         val user = _uiState.value.userLocation
-        return if (_uiState.value.permissionState != MapPermissionState.GRANTED || user == null) {
-            "Location permission required to calculate distance"
-        } else {
-            formatDistanceMeters(distanceMeters(user.first, user.second, attraction.latitude, attraction.longitude))
+        return when {
+            _uiState.value.permissionState != MapPermissionState.GRANTED -> "Location permission required to calculate distance"
+            user == null -> "Current location unavailable"
+            else -> formatDistanceMeters(distanceMeters(user.first, user.second, attraction.latitude, attraction.longitude))
         }
     }
 

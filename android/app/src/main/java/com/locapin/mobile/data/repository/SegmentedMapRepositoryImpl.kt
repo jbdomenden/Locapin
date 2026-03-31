@@ -3,9 +3,9 @@ package com.locapin.mobile.data.repository
 import com.locapin.mobile.core.common.LocaPinResult
 import com.locapin.mobile.data.local.SanJuanSeedDataSource
 import com.locapin.mobile.data.remote.LocaPinApi
-import com.locapin.mobile.domain.model.MapArea
-import com.locapin.mobile.domain.model.MapAttraction
-import com.locapin.mobile.domain.model.MapPoint
+import com.locapin.mobile.domain.model.MapZone
+import com.locapin.mobile.domain.model.ZoneAttraction
+import com.locapin.mobile.domain.model.ZonePoint
 import com.locapin.mobile.domain.repository.SegmentedMapRepository
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -16,32 +16,32 @@ class SegmentedMapRepositoryImpl @Inject constructor(
     private val seedDataSource: SanJuanSeedDataSource
 ) : SegmentedMapRepository {
 
-    override suspend fun getMapAreas(): LocaPinResult<List<MapArea>> = runCatching {
+    override suspend fun getMapZones(): LocaPinResult<List<MapZone>> = runCatching {
         api.mapAreas().data?.map {
-            MapArea(
+            MapZone(
                 id = it.id,
                 displayName = it.displayName,
-                polygon = it.polygon.map { p -> MapPoint(p.x, p.y) },
-                center = MapPoint(it.center.x, it.center.y)
+                polygonPoints = it.polygonPoints.map { p -> ZonePoint(p.lat, p.lng) },
+                centerLat = it.centerLat,
+                centerLng = it.centerLng
             )
         }
     }.fold(
-        onSuccess = { LocaPinResult.Success(it ?: seedDataSource.mapAreas()) },
-        onFailure = { LocaPinResult.Success(seedDataSource.mapAreas()) }
+        onSuccess = { LocaPinResult.Success(it ?: seedDataSource.mapZones()) },
+        onFailure = { LocaPinResult.Success(seedDataSource.mapZones()) }
     )
 
-    override suspend fun getMapAttractions(): LocaPinResult<List<MapAttraction>> = runCatching {
+    override suspend fun getZoneAttractions(): LocaPinResult<List<ZoneAttraction>> = runCatching {
         api.mapAttractions().data?.map {
-            MapAttraction(
+            ZoneAttraction(
                 id = it.id,
                 name = it.name,
                 knownFor = it.knownFor,
                 latitude = it.latitude,
                 longitude = it.longitude,
-                areaId = it.areaId,
+                zoneId = it.zoneId,
                 imageUrl = it.imageUrl,
-                category = it.category,
-                mapPoint = MapPoint(it.mapPoint.x, it.mapPoint.y)
+                category = it.category
             )
         }
     }.fold(

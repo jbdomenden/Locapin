@@ -69,16 +69,17 @@ data class DestinationQuery(
 
 @Serializable
 data class MapPointDto(
-    val x: Float,
-    val y: Float
+    val lat: Double,
+    val lng: Double
 )
 
 @Serializable
-data class MapAreaDto(
+data class MapZoneDto(
     val id: String,
     val displayName: String,
-    val polygon: List<MapPointDto>,
-    val center: MapPointDto
+    val polygonPoints: List<MapPointDto>,
+    val centerLat: Double,
+    val centerLng: Double
 )
 
 @Serializable
@@ -88,8 +89,7 @@ data class MapAttractionDto(
     val knownFor: String,
     val latitude: Double,
     val longitude: Double,
-    val areaId: String,
+    val zoneId: String,
     val imageUrl: String? = null,
-    val category: String? = null,
-    val mapPoint: MapPointDto
+    val category: String? = null
 )
