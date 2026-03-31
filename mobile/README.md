@@ -11,7 +11,7 @@ Production-ready Jetpack Compose Android client for LocaPin end users.
 - Single-activity architecture with Navigation Compose
 
 ## Setup
-1. Open `/workspace/Locapin/android` in Android Studio (latest stable).
+1. Open `/workspace/Locapin/mobile` in Android Studio (latest stable).
 2. Create `~/.gradle/gradle.properties` (or project `local.properties`) with:
    ```properties
    LOCAPIN_API_BASE_URL=https://<your-ktor-host>/
@@ -19,7 +19,7 @@ Production-ready Jetpack Compose Android client for LocaPin end users.
    ```
 3. Ensure Android SDK path is configured (required):
    - via `ANDROID_HOME` / `ANDROID_SDK_ROOT`, or
-   - via `android/local.properties`:
+   - via `mobile/local.properties`:
    ```properties
    sdk.dir=C\Users\<you>\AppData\Local\Android\Sdk
    ```
@@ -60,7 +60,8 @@ one of the cached Gradle artifacts is usually truncated/corrupted. From the repo
 ./gradlew --stop
 rm -rf ~/.gradle/caches
 rm -rf ~/.gradle/wrapper/dists
-./gradlew -p android :app:help --refresh-dependencies
+cd mobile
+./gradlew :app:help --refresh-dependencies
 ```
 
 Then re-sync the Android project in Android Studio.
