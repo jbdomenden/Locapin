@@ -1,44 +1,23 @@
-# LocaPin Repository
+# LocaPin Monorepo
 
-This repository contains:
-- **Admin backend** (`Ktor + Exposed + PostgreSQL`) at root.
-- **End-user Android app** (`Jetpack Compose`) under `android/`.
+This repository is now organized into two top-level projects:
 
-## Android Studio run configuration fix
-If you see `Unknown run configuration type KtorApplicationConfigurationType` while trying to run mobile code:
-1. Close Android Studio.
-2. Delete stale local config files under `.idea/runConfigurations/` and remove the unknown entry from `.idea/workspace.xml` (local machine only, not committed).
-3. Re-open the project and use one of the checked-in run configs from `.run/`:
-   - `Backend (Gradle)`
-   - `Android App Assemble (Gradle)`
-4. Fix SDK path error by setting one of the following:
-   - `ANDROID_HOME` or `ANDROID_SDK_ROOT` environment variable, or
-   - `android/local.properties` with `sdk.dir=C\\Users\\<you>\\AppData\\Local\\Android\\Sdk` on Windows.
-5. For emulator launch/debug, open `android/` as a standalone project and run module `app`.
+- `website/` — Admin website/backend (Ktor + Exposed + PostgreSQL), intended for IntelliJ IDEA.
+- `mobile/` — Android mobile app (Jetpack Compose), intended for Android Studio.
 
-The root `settings.gradle.kts` includes the Android composite build **only when SDK path is configured**, so backend sync does not fail on non-Android environments.
+## Quick start
 
----
+### Website (IntelliJ)
+1. Open `locapin/website` in IntelliJ IDEA.
+2. Configure `.env` values for database and app settings.
+3. Run:
+   ```bash
+   cd website
+   ./gradlew run
+   ```
 
-## Backend (Admin) Setup
-1. Copy `.env.example` to `.env` and fill values.
-2. Start PostgreSQL and create `Locapin_db`.
-3. Run: `./gradlew run`
-4. Open: `http://localhost:9000/admin/login`
-
-### Required `.env`
-- `DB_URL=jdbc:postgresql://localhost:5432/Locapin_db`
-- `DB_USER=postgres`
-- `DB_PASSWORD=root`
-- `ADMIN_INITIAL_NAME=...`
-- `ADMIN_INITIAL_EMAIL=...`
-- `ADMIN_INITIAL_PASSWORD=...`
-- `SESSION_SECRET=...` (>=32 chars)
-- `APP_ENV=development`
-- `APP_PORT=9000`
-- `FILE_UPLOAD_DIR=uploads`
-
-### Bootstrap behavior
-- Fails fast if required env values are missing.
-- Creates first super admin from `.env` when `admin_users` is empty.
-- Seeds San Juan City, one sample area, and one sample plan if those tables are empty.
+### Mobile (Android Studio)
+1. Open `locapin/mobile` in Android Studio.
+2. Set Android SDK path via `ANDROID_HOME`/`ANDROID_SDK_ROOT` or `mobile/local.properties`.
+3. Add required API and Maps keys in Gradle/local properties.
+4. Run module `app` on an emulator or device.
