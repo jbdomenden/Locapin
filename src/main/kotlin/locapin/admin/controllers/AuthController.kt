@@ -13,6 +13,7 @@ import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import locapin.admin.auth.AdminSession
 import locapin.admin.models.ApiResponse
+import locapin.admin.models.ChangePasswordRequest
 import locapin.admin.models.LoginRequest
 import locapin.admin.services.AuthService
 
@@ -32,7 +33,41 @@ class AuthController(private val authService: AuthService = AuthService()) {
         route.get("/admin/auth/me") {
             val session = call.sessions.get<AdminSession>()
             if (session == null) call.respond(HttpStatusCode.Unauthorized, ApiResponse<Unit>(false, "Unauthenticated"))
-            else call.respond(ApiResponse(true, "Authenticated", session))
+            else call.respond(ApiResponse(true, "Authenticated", mapOf("adminId" to session.adminId, "email" to session.email, "role" to session.role.name)))
+        }
+
+        route.post("/admin/auth/change-password") {
+            val session = call.sessions.get<AdminSession>()
+                ?: return@post call.respond(HttpStatusCode.Unauthorized, ApiResponse<Unit>(false, "Unauthenticated"))
+            val payload = call.receive<ChangePasswordRequest>()
+            val error = authService.changePassword(
+                adminId = session.adminId,
+                currentPassword = payload.currentPassword,
+                newPassword = payload.newPassword,
+                confirmNewPassword = payload.confirmNewPassword
+            )
+            if (error != null) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(false, error))
+            } else {
+                call.respond(ApiResponse<Unit>(true, "Password changed successfully."))
+            }
+        }
+
+        route.post("/admin/auth/change-password") {
+            val session = call.sessions.get<AdminSession>()
+                ?: return@post call.respond(HttpStatusCode.Unauthorized, ApiResponse<Unit>(false, "Unauthenticated"))
+            val payload = call.receive<ChangePasswordRequest>()
+            val error = authService.changePassword(
+                adminId = session.adminId,
+                currentPassword = payload.currentPassword,
+                newPassword = payload.newPassword,
+                confirmNewPassword = payload.confirmNewPassword
+            )
+            if (error != null) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(false, error))
+            } else {
+                call.respond(ApiResponse<Unit>(true, "Password changed successfully."))
+            }
         }
     }
 }

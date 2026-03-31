@@ -24,6 +24,7 @@ object DatabaseFactory {
         transaction {
             SchemaUtils.create(
                 AdminUsersTable,
+                AdminPermissionsTable,
                 CitiesTable,
                 AreasTable,
                 AttractionsTable,

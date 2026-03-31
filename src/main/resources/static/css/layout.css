@@ -1,1 +1,74 @@
-.shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh}.sidebar{background:#fff3f0;padding:20px;border-right:1px solid #f0c7c9}.topbar{background:white;padding:14px 18px;border-bottom:1px solid #f0d7d6;display:flex;justify-content:space-between}.main{display:flex;flex-direction:column}
+.shell { min-height: 100vh; display: grid; grid-template-columns: 280px 1fr; }
+
+.sidebar {
+  background: linear-gradient(180deg, #fff8f5, #fdeeed);
+  border-right: 1px solid #f0d8d8;
+  padding: 24px 16px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.brand img { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; }
+.brand-text small { color: var(--muted); display: block; }
+.brand-text strong { font-size: 18px; }
+
+.nav-section { margin-bottom: 18px; }
+.nav-section .label {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 0 10px 10px;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  color: #5a4550;
+  margin-bottom: 6px;
+  transition: all 0.2s ease;
+}
+.nav-link:hover { background: #f8dfdf; }
+.nav-link.active {
+  background: linear-gradient(90deg, #f4d4d7, #f7e2df);
+  color: var(--rose-600);
+  font-weight: 600;
+}
+
+.main { display: flex; flex-direction: column; min-width: 0; }
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: rgba(255, 247, 245, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #f2d9d8;
+}
+
+.page-meta small { color: var(--muted); display: block; margin-top: 2px; }
+.container { padding: 24px; display: grid; gap: 18px; }
+
+@media (max-width: 960px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+}

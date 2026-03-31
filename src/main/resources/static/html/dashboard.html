@@ -1,3 +1,30 @@
-<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><link rel='stylesheet' href='/static/css/base.css'><link rel='stylesheet' href='/static/css/layout.css'><link rel='stylesheet' href='/static/css/components.css'><link rel='stylesheet' href='/static/css/pages.css'><title>LocaPin Admin</title></head><body><div class='shell'><aside class='sidebar'><img src='/static/images/locapin-logo.svg' style='width:100%'><nav><p><a href='/admin/dashboard'>Dashboard</a></p><p><a href='/admin/cities'>Cities</a></p><p><a href='/admin/areas'>Areas</a></p><p><a href='/admin/attractions'>Attractions</a></p><p><a href='/admin/photos'>Photos</a></p><p><a href='/admin/plans'>Plans</a></p></nav></aside><div class='main'><div class='topbar'><strong>LocaPin Admin</strong><button class='btn alt' onclick='logout()'>Logout</button></div><div class='container'>
-<h1 class='page-title'>Dashboard</h1><div id='dashboardStats' class='grid cols-4'></div><div class='quick'><a class='btn' href='/admin/cities/new'>New City</a><a class='btn' href='/admin/areas/new'>New Area</a><a class='btn' href='/admin/attractions/new'>New Attraction</a></div><script src='/static/js/dashboard.js'></script>
-</div></div></div><script src='/static/js/api.js'></script><script src='/static/js/ui.js'></script><script src='/static/js/auth.js'></script></body></html>
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link rel='icon' type='image/jpeg' href='/static/images/locapin-logo.jpg'>
+  <link rel='stylesheet' href='/static/css/base.css'><link rel='stylesheet' href='/static/css/layout.css'><link rel='stylesheet' href='/static/css/components.css'><link rel='stylesheet' href='/static/css/pages.css'>
+  <title>LocaPin Admin • Dashboard</title>
+</head>
+<body>
+<div class='shell'>
+  <aside class='sidebar'>
+    <div class='brand'><img src='/static/images/locapin-logo.jpg' alt='LocaPin'><div class='brand-text'><small>Admin Console</small><strong>LocaPin</strong></div></div>
+    <div class='nav-section'><p class='label'>Overview</p><a class='nav-link' href='/admin/dashboard'>🏠 Dashboard</a></div>
+    <div class='nav-section'><p class='label'>Content</p><a class='nav-link' href='/admin/cities'>🏙️ Cities</a><a class='nav-link' href='/admin/areas'>🗺️ Areas</a><a class='nav-link' href='/admin/attractions'>📍 Attractions</a><a class='nav-link' href='/admin/photos'>🖼️ Photos</a></div>
+    <div class='nav-section'><p class='label'>Monetization</p><a class='nav-link' href='/admin/plans'>💎 Plans</a><a class='nav-link' href='/admin/users'>👤 User Management</a></div>
+  </aside>
+  <main class='main'>
+    <header class='topbar'><div class='page-meta'><strong>Dashboard</strong><small>Admin workspace overview</small></div><div class='user-menu' data-user-menu><button class='btn icon alt' data-user-menu-btn aria-label='Open menu'>⋮</button><div class='dropdown-menu'><button class='dropdown-item' data-change-password>Change Password</button><button class='dropdown-item' onclick='logout()'>Logout</button></div></div></header>
+    <section class='container'>
+      <div><h1 class='page-title'>Welcome to LocaPin Admin</h1><p class='page-subtitle'>Operational summary and quick tools.</p></div>
+      <div id='dashboardStats' class='stats-grid'></div>
+      <div class='surface'><div class='surface-head'><h3>Quick Actions</h3></div><div class='surface-body quick-actions'><a class='btn' href='/admin/cities/new'>Create City</a><a class='btn' href='/admin/areas/new'>Create Area</a><a class='btn' href='/admin/attractions/new'>Create Attraction</a></div></div>
+      <div id='summaryPanel' class='surface'></div>
+    </section>
+  </main>
+</div>
+<div class='modal-backdrop' id='changePasswordModal'><div class='modal'><h3>Change Password</h3><p class='page-subtitle'>Update your admin account password.</p><form id='changePasswordForm' class='form-grid' style='margin-top:12px'><div class='field'><label for='currentPassword'>Current Password</label><input id='currentPassword' class='input' type='password' required></div><div class='field'><label for='newPassword'>New Password</label><input id='newPassword' class='input' type='password' required></div><div class='field'><label for='confirmNewPassword'>Confirm New Password</label><input id='confirmNewPassword' class='input' type='password' required></div><div id='changePasswordError' class='field-help' style='color:#b64c57'></div><div class='modal-actions'><button type='button' class='btn alt' data-close-modal>Cancel</button><button class='btn' type='submit'>Save Password</button></div></form></div></div>
+<script src='/static/js/api.js'></script><script src='/static/js/ui.js'></script><script src='/static/js/auth.js'></script><script src='/static/js/dashboard.js'></script>
+</body>
+</html>
