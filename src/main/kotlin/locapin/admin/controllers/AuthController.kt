@@ -52,5 +52,22 @@ class AuthController(private val authService: AuthService = AuthService()) {
                 call.respond(ApiResponse<Unit>(true, "Password changed successfully."))
             }
         }
+
+        route.post("/admin/auth/change-password") {
+            val session = call.sessions.get<AdminSession>()
+                ?: return@post call.respond(HttpStatusCode.Unauthorized, ApiResponse<Unit>(false, "Unauthenticated"))
+            val payload = call.receive<ChangePasswordRequest>()
+            val error = authService.changePassword(
+                adminId = session.adminId,
+                currentPassword = payload.currentPassword,
+                newPassword = payload.newPassword,
+                confirmNewPassword = payload.confirmNewPassword
+            )
+            if (error != null) {
+                call.respond(HttpStatusCode.BadRequest, ApiResponse<Unit>(false, error))
+            } else {
+                call.respond(ApiResponse<Unit>(true, "Password changed successfully."))
+            }
+        }
     }
 }
