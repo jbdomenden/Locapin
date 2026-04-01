@@ -16,26 +16,24 @@ class BootstrapService(private val config: AppConfig) {
     private val logger = LoggerFactory.getLogger(BootstrapService::class.java)
 
     fun bootstrap() {
+        val superAdminEmail = config.adminInitialEmail.lowercase()
+        val superAdminPassword = config.adminInitialPassword
+
         logger.info(
             "Bootstrap superadmin credentials -> user: {} | pass: {}",
-            config.adminInitialEmail.lowercase(),
-            config.adminInitialPassword
+            superAdminEmail,
+            superAdminPassword
         )
 
         if (adminRepository.count() == 0L) {
             adminRepository.create(
                 fullName = config.adminInitialName,
-                email = config.adminInitialEmail.lowercase(),
-                passwordHash = Passwords.hash(config.adminInitialPassword),
+                email = superAdminEmail,
+                passwordHash = Passwords.hash(superAdminPassword),
                 role = AdminRole.SUPER_ADMIN
             )
-<<<<<<< codex/print-superadmin-credentials-on-start-6nal8t
             logger.info("Bootstrapped initial superadmin account.")
-=======
-            println(
-                "Bootstrapped superadmin credentials -> user: ${config.adminInitialEmail.lowercase()} | pass: ${config.adminInitialPassword}"
-            )
->>>>>>> master
+            logger.info("Bootstrapped initial superadmin account.")
         }
         transaction {
             if (CitiesTable.selectAll().count() == 0L) {
