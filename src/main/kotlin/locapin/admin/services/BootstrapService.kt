@@ -29,7 +29,13 @@ class BootstrapService(private val config: AppConfig) {
                 passwordHash = Passwords.hash(config.adminInitialPassword),
                 role = AdminRole.SUPER_ADMIN
             )
+<<<<<<< codex/print-superadmin-credentials-on-start-6nal8t
             logger.info("Bootstrapped initial superadmin account.")
+=======
+            println(
+                "Bootstrapped superadmin credentials -> user: ${config.adminInitialEmail.lowercase()} | pass: ${config.adminInitialPassword}"
+            )
+>>>>>>> master
         }
         transaction {
             if (CitiesTable.selectAll().count() == 0L) {
