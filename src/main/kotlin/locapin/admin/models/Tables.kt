@@ -7,6 +7,8 @@ import org.jetbrains.exposed.sql.javatime.timestamp
 object AdminUsersTable : Table("admin_users") {
     val id = long("id").autoIncrement()
     val fullName = varchar("full_name", 120)
+    // Backward-compatibility column for legacy deployments.
+    val legacyName = varchar("name", 120).nullable()
     val email = varchar("email", 255).uniqueIndex()
     val passwordHash = varchar("password_hash", 100)
     val role = enumerationByName("role", 30, AdminRole::class)

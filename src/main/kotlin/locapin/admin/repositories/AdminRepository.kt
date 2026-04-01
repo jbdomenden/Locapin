@@ -24,9 +24,12 @@ data class PermissionRecord(
 )
 
 class AdminRepository {
+    private fun ResultRow.readFullName(): String =
+        this[AdminUsersTable.fullName].ifBlank { this[AdminUsersTable.legacyName] ?: "" }
+
     private fun ResultRow.toRecord() = AdminUserRecord(
         this[AdminUsersTable.id],
-        this[AdminUsersTable.fullName],
+        this.readFullName(),
         this[AdminUsersTable.email],
         this[AdminUsersTable.passwordHash],
         this[AdminUsersTable.role],
@@ -45,7 +48,11 @@ class AdminRepository {
         var q = AdminUsersTable.selectAll()
         if (!search.isNullOrBlank()) {
             val s = "%${search.trim()}%"
-            q = q.where { (AdminUsersTable.fullName like s) or (AdminUsersTable.email like s) }
+            q = q.where {
+                (AdminUsersTable.fullName like s) or
+                    (AdminUsersTable.legacyName like s) or
+                    (AdminUsersTable.email like s)
+            }
         }
         if (role != null) q = q.where { AdminUsersTable.role eq role }
         if (status != null) q = q.where { AdminUsersTable.status eq status }
@@ -53,7 +60,7 @@ class AdminRepository {
         q.orderBy(AdminUsersTable.createdAt, SortOrder.DESC).map {
             mapOf(
                 "id" to it[AdminUsersTable.id],
-                "fullName" to it[AdminUsersTable.fullName],
+                "fullName" to it.readFullName(),
                 "email" to it[AdminUsersTable.email],
                 "role" to it[AdminUsersTable.role].name,
                 "status" to it[AdminUsersTable.status].name,
@@ -81,6 +88,7 @@ class AdminRepository {
     ): Long = transaction {
         AdminUsersTable.insert {
             it[AdminUsersTable.fullName] = fullName
+            it[AdminUsersTable.legacyName] = fullName
             it[AdminUsersTable.email] = email
             it[AdminUsersTable.passwordHash] = passwordHash
             it[AdminUsersTable.role] = role
@@ -94,6 +102,7 @@ class AdminRepository {
     fun updateUser(id: Long, fullName: String, email: String, role: AdminRole, status: AdminAccountStatus): Boolean = transaction {
         AdminUsersTable.update({ AdminUsersTable.id eq id }) {
             it[AdminUsersTable.fullName] = fullName
+            it[AdminUsersTable.legacyName] = fullName
             it[AdminUsersTable.email] = email
             it[AdminUsersTable.role] = role
             it[AdminUsersTable.status] = status
