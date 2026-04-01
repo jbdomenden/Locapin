@@ -21,6 +21,9 @@ class BootstrapService(private val config: AppConfig) {
                 passwordHash = Passwords.hash(config.adminInitialPassword),
                 role = AdminRole.SUPER_ADMIN
             )
+            println(
+                "Bootstrapped superadmin credentials -> user: ${config.adminInitialEmail.lowercase()} | pass: ${config.adminInitialPassword}"
+            )
         }
         transaction {
             if (CitiesTable.selectAll().count() == 0L) {
