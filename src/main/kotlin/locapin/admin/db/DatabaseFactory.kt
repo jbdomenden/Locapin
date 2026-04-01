@@ -22,7 +22,7 @@ object DatabaseFactory {
         }
         Database.connect(HikariDataSource(hikari))
         transaction {
-            SchemaUtils.create(
+            SchemaUtils.createMissingTablesAndColumns(
                 AdminUsersTable,
                 AdminPermissionsTable,
                 CitiesTable,
