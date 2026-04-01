@@ -33,6 +33,7 @@ class BootstrapService(private val config: AppConfig) {
                 role = AdminRole.SUPER_ADMIN
             )
             logger.info("Bootstrapped initial superadmin account.")
+            logger.info("Bootstrapped initial superadmin account.")
         }
         transaction {
             if (CitiesTable.selectAll().count() == 0L) {
