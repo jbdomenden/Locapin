@@ -37,7 +37,7 @@ ADMIN_INITIAL_NAME=Super Admin
 ADMIN_INITIAL_EMAIL=admin@locapin.com
 ADMIN_INITIAL_PASSWORD=change-me-now
 
-# Must be at least 32 characters
+# Must be at least 32 characters (required outside development)
 SESSION_SECRET=replace-with-a-long-random-secret-value
 ```
 
@@ -63,3 +63,4 @@ Default admin login URL:
 ## Database notes
 - Ensure the PostgreSQL database in `DB_URL` exists and credentials are valid.
 - The app initializes schema and bootstrap data at startup, including the initial super admin account from `.env` if no admins exist.
+- In `APP_ENV=development`, the app falls back to an internal dev session secret when `SESSION_SECRET` is not set; set `SESSION_SECRET` explicitly for shared/staging/production environments.

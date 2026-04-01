@@ -26,7 +26,10 @@ data class AppConfig(
                     ?: default
                     ?: if (required) error("Missing required environment variable: $key") else ""
             }
-            val secret = read("SESSION_SECRET")
+            val appEnv = read("APP_ENV", required = false, default = "development")
+            val secret = System.getenv("SESSION_SECRET")
+                ?: env["SESSION_SECRET"]
+                ?: if (appEnv == "development") "dev-session-secret-change-me-32-chars" else error("Missing required environment variable: SESSION_SECRET")
             require(secret.length >= 32) { "SESSION_SECRET must be at least 32 characters." }
 
             return AppConfig(
@@ -37,7 +40,7 @@ data class AppConfig(
                 adminInitialEmail = read("ADMIN_INITIAL_EMAIL"),
                 adminInitialPassword = read("ADMIN_INITIAL_PASSWORD"),
                 sessionSecret = secret,
-                appEnv = read("APP_ENV", required = false, default = "development"),
+                appEnv = appEnv,
                 appPort = read("APP_PORT", required = false, default = "9000").toInt(),
                 fileUploadDir = read("FILE_UPLOAD_DIR", required = false, default = "uploads")
             )
