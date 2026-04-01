@@ -7,20 +7,32 @@ import locapin.admin.utils.Passwords
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.Instant
 
 class BootstrapService(private val config: AppConfig) {
     private val adminRepository = AdminRepository()
+    private val logger = LoggerFactory.getLogger(BootstrapService::class.java)
 
     fun bootstrap() {
+        val superAdminEmail = config.adminInitialEmail.lowercase()
+        val superAdminPassword = config.adminInitialPassword
+
+        logger.info(
+            "Bootstrap superadmin credentials -> user: {} | pass: {}",
+            superAdminEmail,
+            superAdminPassword
+        )
+
         if (adminRepository.count() == 0L) {
             adminRepository.create(
                 fullName = config.adminInitialName,
-                email = config.adminInitialEmail.lowercase(),
-                passwordHash = Passwords.hash(config.adminInitialPassword),
+                email = superAdminEmail,
+                passwordHash = Passwords.hash(superAdminPassword),
                 role = AdminRole.SUPER_ADMIN
             )
+            logger.info("Bootstrapped initial superadmin account.")
         }
         transaction {
             if (CitiesTable.selectAll().count() == 0L) {
