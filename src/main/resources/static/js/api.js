@@ -16,18 +16,21 @@ const api = {
       throw new Error('Network error. Please try again.')
     }
 
-    if (res.status === 401) {
+    const body = await res.json().catch(() => ({}))
+
+    const isLoginRequest = url === '/admin/auth/login'
+    if (res.status === 401 && !isLoginRequest) {
       location.href = '/admin/login'
-      throw new Error('Unauthenticated')
+      throw new Error(body.message || 'Unauthenticated')
     }
 
-    const j = await res.json().catch(() => ({}))
-    if (!res.ok || j.success === false) {
-      const message = j.message || 'Request failed'
+    if (!res.ok || body.success === false) {
+      const message = body.message || 'Request failed'
       if (window.ui?.toast) ui.toast(message)
       throw new Error(message)
     }
-    return j.data
+
+    return body.data
   },
   get: (u) => api.request(u),
   post: (u, d) => api.request(u, { method: 'POST', body: JSON.stringify(d) }),
