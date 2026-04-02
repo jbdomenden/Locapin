@@ -1,4 +1,4 @@
-const MODULES = ['DASHBOARD','CITIES','AREAS','ATTRACTIONS','PHOTOS','PLANS','USER_MANAGEMENT']
+const MODULES = ['DASHBOARD','AREAS','ATTRACTIONS','PHOTOS','PLANS','USER_MANAGEMENT']
 function renderPermissionGrid(data={}){
   permissionGrid.innerHTML = `<table class='table'><thead><tr><th>Module</th><th>Read</th><th>Create</th><th>Update</th><th>Delete</th></tr></thead><tbody>${MODULES.map(m=>`<tr><td>${m}</td>${['read','create','update','delete'].map(a=>`<td><input type='checkbox' data-module='${m}' data-action='${a}' ${(data[m]?.[a]?'checked':'')}></td>`).join('')}</tr>`).join('')}</tbody></table>`
 }
