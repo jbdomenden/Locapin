@@ -25,7 +25,7 @@ import kotlinx.serialization.Serializable
 @Serializable data class ResetPasswordRequest(val newPassword: String, val confirmNewPassword: String)
 @Serializable data class StatusRequest(val status: EntityStatus)
 @Serializable data class AreaRequest(val name: String, val centerLatitude: Double, val centerLongitude: Double, val boundaryData: String? = null)
-@Serializable data class AttractionRequest(val areaId: Long, val name: String, val description: String, val highlights: String, val latitude: Double, val longitude: Double, val openHours: String? = null)
+@Serializable data class AttractionRequest(val areaId: Long, val name: String, val description: String, val highlights: String? = null, val knownFor: String? = null, val latitude: Double, val longitude: Double, val openHours: String? = null)
 @Serializable data class FeaturedRequest(val isFeatured: Boolean)
 @Serializable data class PlanRequest(val name: String, val description: String, val price: Double, val billingPeriod: BillingPeriod, val isActive: Boolean)
 @Serializable data class PhotoReorderItem(val id: Long, val sortOrder: Int)

@@ -30,12 +30,18 @@ class AdminService(
     fun listAttractions(areaId: Long?, q: String?) = repo.listAttractions(areaId, q)
     fun getAttraction(id: Long) = repo.getAttraction(id)
     fun createAttraction(req: AttractionRequest): Long {
-        Validators.requireNotBlank(req.name, "Attraction name"); Validators.requireNotBlank(req.description, "Description"); Validators.requireNotBlank(req.highlights, "Highlights"); Validators.validateLatLng(req.latitude, req.longitude)
+        Validators.requireNotBlank(req.name, "Attraction name")
+        Validators.requireNotBlank(req.description, "Description")
+        Validators.requireNotBlank(resolveKnownFor(req), "Known for")
+        Validators.validateLatLng(req.latitude, req.longitude)
         repo.getArea(req.areaId) ?: throw BadRequestException("Area not found")
         return repo.createAttraction(req)
     }
     fun updateAttraction(id: Long, req: AttractionRequest) {
-        Validators.requireNotBlank(req.name, "Attraction name"); Validators.requireNotBlank(req.description, "Description"); Validators.requireNotBlank(req.highlights, "Highlights"); Validators.validateLatLng(req.latitude, req.longitude)
+        Validators.requireNotBlank(req.name, "Attraction name")
+        Validators.requireNotBlank(req.description, "Description")
+        Validators.requireNotBlank(resolveKnownFor(req), "Known for")
+        Validators.validateLatLng(req.latitude, req.longitude)
         repo.getArea(req.areaId) ?: throw BadRequestException("Area not found")
         repo.updateAttraction(id, req)
     }
@@ -123,6 +129,11 @@ class AdminService(
     fun setAdminPermissions(id: Long, permissions: List<PermissionItemRequest>) {
         adminRepo.replacePermissions(id, normalizePermissions(permissions))
     }
+
+
+    private fun resolveKnownFor(req: AttractionRequest): String =
+        req.knownFor?.trim().takeUnless { it.isNullOrBlank() }
+            ?: req.highlights?.trim().orEmpty()
 
     private fun normalizePermissions(input: List<PermissionItemRequest>): List<locapin.admin.repositories.PermissionRecord> {
         val requested = input.associateBy { it.moduleKey }

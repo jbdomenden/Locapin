@@ -30,12 +30,12 @@ class ContentRepository {
     fun listAreas() = transaction {
         AreasTable.selectAll().where { AreasTable.cityId eq resolveSanJuanCityId() }
             .orderBy(AreasTable.name)
-            .map { ResultRowSerializer.area(it) }
+            .map { ResultRowSerializer.area(it, attractionCountForArea(it[AreasTable.id])) }
     }
 
     fun getArea(id: Long) = transaction {
         AreasTable.selectAll().where { (AreasTable.id eq id) and (AreasTable.cityId eq resolveSanJuanCityId()) }
-            .singleOrNull()?.let { ResultRowSerializer.area(it) }
+            .singleOrNull()?.let { ResultRowSerializer.area(it, attractionCountForArea(it[AreasTable.id])) }
     }
 
     fun createArea(req: AreaRequest) = transaction {
@@ -75,7 +75,7 @@ class ContentRepository {
         }
         if (areaId != null) query = query.where { AttractionsTable.areaId eq areaId }
         if (!q.isNullOrBlank()) query = query.where { AttractionsTable.name like "%${q.trim()}%" }
-        query.orderBy(AttractionsTable.createdAt, SortOrder.DESC).map { ResultRowSerializer.attraction(it) }
+        query.orderBy(AttractionsTable.createdAt, SortOrder.DESC).map { ResultRowSerializer.attraction(it, areaNameFor(it[AttractionsTable.areaId]), primaryImageForAttraction(it[AttractionsTable.id])) }
     }
 
     fun getAttraction(id: Long) = transaction {
@@ -83,7 +83,7 @@ class ContentRepository {
             (AttractionsTable.id eq id) and
                 (AttractionsTable.isDeleted eq false) and
                 (AttractionsTable.cityId eq resolveSanJuanCityId())
-        }.singleOrNull()?.let { ResultRowSerializer.attraction(it) }
+        }.singleOrNull()?.let { ResultRowSerializer.attraction(it, areaNameFor(it[AttractionsTable.areaId]), primaryImageForAttraction(it[AttractionsTable.id])) }
     }
 
     fun createAttraction(req: AttractionRequest) = transaction {
@@ -92,7 +92,7 @@ class ContentRepository {
             it[areaId] = req.areaId
             it[name] = req.name.trim()
             it[description] = req.description.trim()
-            it[highlights] = req.highlights.trim()
+            it[highlights] = resolveKnownFor(req)
             it[latitude] = req.latitude
             it[longitude] = req.longitude
             it[openHours] = req.openHours
@@ -110,7 +110,7 @@ class ContentRepository {
             it[areaId] = req.areaId
             it[name] = req.name.trim()
             it[description] = req.description.trim()
-            it[highlights] = req.highlights.trim()
+            it[highlights] = resolveKnownFor(req)
             it[latitude] = req.latitude
             it[longitude] = req.longitude
             it[openHours] = req.openHours
@@ -150,6 +150,29 @@ class ContentRepository {
     fun reorderPhotos(items: List<PhotoReorderItem>) = transaction { items.forEach { item -> AttractionPhotosTable.update({ AttractionPhotosTable.id eq item.id }) { it[sortOrder]=item.sortOrder } } }
     fun deletePhoto(id: Long) = transaction { AttractionPhotosTable.deleteWhere { AttractionPhotosTable.id eq id } }
 
+
+    private fun Transaction.attractionCountForArea(areaId: Long): Long =
+        AttractionsTable.selectAll().where {
+            (AttractionsTable.areaId eq areaId) and
+                (AttractionsTable.isDeleted eq false) and
+                (AttractionsTable.cityId eq resolveSanJuanCityId())
+        }.count()
+
+    private fun Transaction.areaNameFor(areaId: Long): String? =
+        AreasTable.select(AreasTable.name).where { AreasTable.id eq areaId }.singleOrNull()?.get(AreasTable.name)
+
+    private fun Transaction.primaryImageForAttraction(attractionId: Long): String? =
+        AttractionPhotosTable.select(AttractionPhotosTable.imagePath)
+            .where { AttractionPhotosTable.attractionId eq attractionId }
+            .orderBy(AttractionPhotosTable.sortOrder, SortOrder.ASC)
+            .limit(1)
+            .singleOrNull()
+            ?.get(AttractionPhotosTable.imagePath)
+
+    private fun resolveKnownFor(req: AttractionRequest): String =
+        req.knownFor?.trim().takeUnless { it.isNullOrBlank() }
+            ?: req.highlights?.trim().orEmpty()
+
     private fun Transaction.resolveSanJuanCityId(): Long {
         return CitiesTable.select(CitiesTable.id).where { CitiesTable.name eq "San Juan City" }.singleOrNull()?.get(CitiesTable.id)
             ?: CitiesTable.select(CitiesTable.id).limit(1).singleOrNull()?.get(CitiesTable.id)
@@ -158,8 +181,8 @@ class ContentRepository {
 }
 
 private object ResultRowSerializer {
-    fun area(it: ResultRow) = mapOf("id" to it[AreasTable.id], "name" to it[AreasTable.name], "centerLatitude" to it[AreasTable.centerLatitude], "centerLongitude" to it[AreasTable.centerLongitude], "boundaryData" to it[AreasTable.boundaryData], "status" to it[AreasTable.status].name, "createdAt" to it[AreasTable.createdAt].toString(), "updatedAt" to it[AreasTable.updatedAt].toString())
-    fun attraction(it: ResultRow) = mapOf("id" to it[AttractionsTable.id], "areaId" to it[AttractionsTable.areaId], "name" to it[AttractionsTable.name], "description" to it[AttractionsTable.description], "highlights" to it[AttractionsTable.highlights], "latitude" to it[AttractionsTable.latitude], "longitude" to it[AttractionsTable.longitude], "openHours" to it[AttractionsTable.openHours], "status" to it[AttractionsTable.status].name, "isFeatured" to it[AttractionsTable.isFeatured], "createdAt" to it[AttractionsTable.createdAt].toString(), "updatedAt" to it[AttractionsTable.updatedAt].toString())
+    fun area(it: ResultRow, attractionCount: Long) = mapOf("id" to it[AreasTable.id], "name" to it[AreasTable.name], "centerLatitude" to it[AreasTable.centerLatitude], "centerLongitude" to it[AreasTable.centerLongitude], "boundaryData" to it[AreasTable.boundaryData], "status" to it[AreasTable.status].name, "attractionCount" to attractionCount, "createdAt" to it[AreasTable.createdAt].toString(), "updatedAt" to it[AreasTable.updatedAt].toString())
+    fun attraction(it: ResultRow, areaName: String?, primaryImagePath: String?) = mapOf("id" to it[AttractionsTable.id], "areaId" to it[AttractionsTable.areaId], "areaName" to areaName, "name" to it[AttractionsTable.name], "description" to it[AttractionsTable.description], "knownFor" to it[AttractionsTable.highlights], "highlights" to it[AttractionsTable.highlights], "latitude" to it[AttractionsTable.latitude], "longitude" to it[AttractionsTable.longitude], "primaryImagePath" to primaryImagePath, "openHours" to it[AttractionsTable.openHours], "status" to it[AttractionsTable.status].name, "isFeatured" to it[AttractionsTable.isFeatured], "createdAt" to it[AttractionsTable.createdAt].toString(), "updatedAt" to it[AttractionsTable.updatedAt].toString())
     fun plan(it: ResultRow) = mapOf("id" to it[SubscriptionPlansTable.id], "name" to it[SubscriptionPlansTable.name], "description" to it[SubscriptionPlansTable.description], "price" to it[SubscriptionPlansTable.price].toDouble(), "billingPeriod" to it[SubscriptionPlansTable.billingPeriod].name, "isActive" to it[SubscriptionPlansTable.isActive], "createdAt" to it[SubscriptionPlansTable.createdAt].toString(), "updatedAt" to it[SubscriptionPlansTable.updatedAt].toString())
     fun photo(it: ResultRow) = mapOf("id" to it[AttractionPhotosTable.id], "attractionId" to it[AttractionPhotosTable.attractionId], "imagePath" to it[AttractionPhotosTable.imagePath], "sortOrder" to it[AttractionPhotosTable.sortOrder], "createdAt" to it[AttractionPhotosTable.createdAt].toString())
 }
