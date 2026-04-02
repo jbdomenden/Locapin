@@ -23,9 +23,6 @@ class PageRoutes(private val resourcesRoot: File = File("src/main/resources/stat
             else call.respondFile(File(resourcesRoot, "login.html"))
         }
         secure(route, "/admin/dashboard", "dashboard.html")
-        secure(route, "/admin/cities", "cities.html")
-        secure(route, "/admin/cities/new", "city-form.html")
-        secure(route, "/admin/cities/{id}/edit", "city-form.html")
         secure(route, "/admin/areas", "areas.html")
         secure(route, "/admin/areas/new", "area-form.html")
         secure(route, "/admin/areas/{id}/edit", "area-form.html")
