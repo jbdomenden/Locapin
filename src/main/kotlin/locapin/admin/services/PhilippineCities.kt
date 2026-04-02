@@ -1,45 +1,79 @@
 package locapin.admin.services
 
-object PhilippineCities {
-    private val cities = listOf(
-        "Alaminos City", "Angeles City", "Antipolo City", "Bacolod City", "Bacoor City",
-        "Bago City", "Baguio City", "Bais City", "Balanga City", "Batac City",
-        "Batangas City", "Bayawan City", "Baybay City", "Biñan City", "Bislig City",
-        "Bogo City", "Borongan City", "Butuan City", "Cabadbaran City", "Cabanatuan City",
-        "Cabuyao City", "Cadiz City", "Cagayan de Oro City", "Calamba City", "Calapan City",
-        "Calbayog City", "Caloocan City", "Candon City", "Canlaon City", "Carcar City",
-        "Catbalogan City", "Cauayan City", "Cavite City", "Cebu City", "City of Manila",
-        "Cotabato City", "Dagupan City", "Danao City", "Dapitan City", "Dasmariñas City",
-        "Davao City", "Digos City", "Dipolog City", "Dumaguete City", "El Salvador City",
-        "Escalante City", "Gapan City", "General Santos City", "General Trias City", "Gingoog City",
-        "Guihulngan City", "Himamaylan City", "Ilagan City", "Iligan City", "Iloilo City",
-        "Imus City", "Iriga City", "Isabela City", "Kabankalan City", "Kidapawan City",
-        "Koronadal City", "La Carlota City", "Lamitan City", "Laoag City", "Lapu-Lapu City",
-        "Las Piñas City", "Legazpi City", "Ligao City", "Lipa City", "Lucena City",
-        "Maasin City", "Makati City", "Malabon City", "Malaybalay City", "Malolos City",
-        "Mandaluyong City", "Mandaue City", "Manila City", "Marawi City", "Marikina City",
-        "Masbate City", "Mati City", "Meycauayan City", "Muñoz City", "Muntinlupa City",
-        "Naga City", "Navotas City", "Olongapo City", "Ormoc City", "Oroquieta City",
-        "Ozamiz City", "Pagadian City", "Palayan City", "Panabo City", "Parañaque City",
-        "Pasay City", "Pasig City", "Passi City", "Puerto Princesa City", "Quezon City",
-        "Roxas City", "Sagay City", "Samal City", "San Carlos City", "San Fernando City",
-        "San Jose City", "San Jose del Monte City", "San Juan City", "San Pablo City", "San Pedro City",
-        "Santa Rosa City", "Santiago City", "Silay City", "Sipalay City", "Sorsogon City",
-        "Surigao City", "Tabaco City", "Tabuk City", "Tacloban City", "Tacurong City",
-        "Tagaytay City", "Tagbilaran City", "Taguig City", "Tagum City", "Talisay City",
-        "Tanauan City", "Tandag City", "Tangub City", "Tanjay City", "Tarlac City",
-        "Tayabas City", "Toledo City", "Trece Martires City", "Tuguegarao City", "Urdaneta City",
-        "Valencia City", "Valenzuela City", "Victorias City", "Vigan City", "Zamboanga City"
-    ).sorted()
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.HttpRequest
+import java.net.http.HttpResponse
+import java.time.Duration
+import java.time.Instant
+
+class PhilippineCities(
+    private val sourceUrl: String = System.getenv("PH_CITIES_SOURCE_URL") ?: "https://psgc.gitlab.io/api/cities/"
+) {
+    @Volatile
+    private var cachedCities: List<String> = emptyList()
+
+    @Volatile
+    private var lastSyncedAt: Instant? = null
 
     fun suggest(query: String?, limit: Int = 15): List<String> {
+        val cities = loadCities()
         val normalized = query?.trim()?.lowercase().orEmpty()
-        if (normalized.isEmpty()) return cities.take(limit)
-        return cities
-            .asSequence()
+        if (normalized.isBlank()) return cities.take(limit)
+        return cities.asSequence()
             .filter { it.lowercase().contains(normalized) }
             .take(limit)
             .toList()
     }
+
+    private fun loadCities(): List<String> {
+        val now = Instant.now()
+        val syncedAt = lastSyncedAt
+        if (cachedCities.isNotEmpty() && syncedAt != null && Duration.between(syncedAt, now).toHours() < 24) {
+            return cachedCities
+        }
+
+        synchronized(this) {
+            val latestSyncedAt = lastSyncedAt
+            if (cachedCities.isNotEmpty() && latestSyncedAt != null && Duration.between(latestSyncedAt, now).toHours() < 24) {
+                return cachedCities
+            }
+
+            val refreshed = fetchCitiesFromSource()
+            if (refreshed.isNotEmpty()) {
+                cachedCities = refreshed
+                lastSyncedAt = now
+            } else if (cachedCities.isEmpty()) {
+                cachedCities = fallbackCities.sorted()
+                lastSyncedAt = now
+            }
+            return cachedCities
+        }
+    }
+
+    private fun fetchCitiesFromSource(): List<String> = try {
+        val request = HttpRequest.newBuilder(URI(sourceUrl))
+            .GET()
+            .timeout(Duration.ofSeconds(10))
+            .build()
+        val response = HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString())
+        if (response.statusCode() !in 200..299) return emptyList()
+        Json.parseToJsonElement(response.body()).jsonArray
+            .mapNotNull { element -> element.jsonObject["name"]?.jsonPrimitive?.content?.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
+    } catch (_: Exception) {
+        emptyList()
+    }
+
+    private val fallbackCities = listOf(
+        "Cebu City", "City of Manila", "Davao City", "Makati City", "Mandaluyong City",
+        "Marikina City", "Pasig City", "Passi City", "Quezon City", "Taguig City"
+    )
 }
 

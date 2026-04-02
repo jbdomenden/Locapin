@@ -9,11 +9,12 @@ import locapin.admin.utils.Passwords
 
 class AdminService(
     private val repo: ContentRepository = ContentRepository(),
-    private val adminRepo: AdminRepository = AdminRepository()
+    private val adminRepo: AdminRepository = AdminRepository(),
+    private val philippineCities: PhilippineCities = PhilippineCities()
 ) {
     fun dashboard() = repo.dashboardStats()
     fun listCities() = repo.listCities()
-    fun suggestPhilippineCities(query: String?) = PhilippineCities.suggest(query)
+    fun suggestPhilippineCities(query: String?) = philippineCities.suggest(query)
     fun getCity(id: Long) = repo.getCity(id)
     fun createCity(req: CityRequest): Long { Validators.requireNotBlank(req.name, "City name"); return repo.createCity(req) }
     fun updateCity(id: Long, req: CityRequest) { Validators.requireNotBlank(req.name, "City name"); repo.updateCity(id, req) }
