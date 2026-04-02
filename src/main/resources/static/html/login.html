@@ -1,1 +1,58 @@
-<!doctype html><html><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><link rel='icon' type='image/jpeg' href='/static/images/locapin-logo.jpg'><link rel='stylesheet' href='/static/css/base.css'><link rel='stylesheet' href='/static/css/auth.css'><link rel='stylesheet' href='/static/css/components.css'><title>LocaPin Admin Login</title></head><body><div class='auth-wrap'><form id='loginForm' class='auth-card'><div class='auth-brand'><img src='/static/images/locapin-logo.jpg' alt='LocaPin'><h1>LocaPin Admin</h1><p>Sign in to manage cities, attractions, photos, and plans.</p></div><div class='field'><label>Email</label><input id='email' class='input' type='email' required placeholder='admin@locapin.com'></div><div class='field'><label>Password</label><input id='password' class='input' type='password' required placeholder='••••••••'></div><button class='btn' type='submit'>Sign In</button></form></div><script src='/static/js/api.js'></script><script src='/static/js/ui.js'></script><script src='/static/js/auth.js'></script></body></html>
+<!doctype html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width,initial-scale=1'>
+  <link rel='icon' type='image/jpeg' href='/static/images/locapin-logo.jpg'>
+  <link rel='stylesheet' href='/static/css/base.css'>
+  <link rel='stylesheet' href='/static/css/auth.css'>
+  <link rel='stylesheet' href='/static/css/components.css'>
+  <title>LocaPin Admin Login</title>
+</head>
+<body>
+  <div class='auth-wrap'>
+    <div class='auth-frame'></div>
+
+    <section class='auth-panel'>
+      <div class='auth-brand'>
+        <img src='/static/images/locapin-logo.jpg' alt='LocaPin logo'>
+        <p class='auth-kicker'>Welcome to</p>
+        <h1>LocaPin Admin</h1>
+        <p class='auth-tagline'>A warm command center for curating the next chapter of local discovery.</p>
+      </div>
+
+      <form id='loginForm' class='auth-card'>
+        <div class='card-topline'></div>
+        <h2>Sign in</h2>
+        <p class='card-subtitle'>Continue managing cities, attractions, photos, and plans.</p>
+
+        <div class='field'>
+          <label for='email'>Email</label>
+          <input id='email' class='input auth-input' type='email' required placeholder='admin@locapin.com' autocomplete='username'>
+        </div>
+
+        <div class='field'>
+          <label for='password'>Password</label>
+          <div class='password-wrap'>
+            <input id='password' class='input auth-input' type='password' required placeholder='••••••••' autocomplete='current-password'>
+            <button id='togglePassword' class='password-toggle' type='button' aria-label='Show password'>Show</button>
+          </div>
+        </div>
+
+        <div class='auth-links'>
+          <button type='button' class='text-link' id='forgotPasswordBtn'>Forgot password?</button>
+          <button type='button' class='text-link' id='createAccountBtn'>Create account</button>
+        </div>
+
+        <button id='loginSubmit' class='btn login-btn' type='submit'>Login</button>
+      </form>
+
+      <p class='auth-support'>Need account help? Contact the super admin for onboarding access.</p>
+    </section>
+  </div>
+
+  <script src='/static/js/api.js'></script>
+  <script src='/static/js/ui.js'></script>
+  <script src='/static/js/auth.js'></script>
+</body>
+</html>
