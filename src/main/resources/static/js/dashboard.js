@@ -21,7 +21,7 @@
       </div>
       <div class='surface-body'>
         <div><span class='badge active'>Active Content</span> ${s.totalAttractions}</div>
-        <div style='margin-top:8px'><span class='badge featured'>Featured Candidates</span> ${Math.max(0, Math.floor(s.totalAttractions * 0.2))}</div>
+        <div style='margin-top:8px'><span class='badge featured'>Featured Candidates</span> ${s.featuredAttractions ?? 0}</div>
       </div>
     </div>`
 })();
