@@ -2,9 +2,8 @@
   if(!document.getElementById('dashboardStats')) return
   const s = await api.get('/admin/api/dashboard/stats')
   const cards = [
-    ['Cities', s.totalCities, '🏙️', 'Managed urban destinations'],
-    ['Areas', s.totalAreas, '🗺️', 'Mapped local zones'],
-    ['Attractions', s.totalAttractions, '📍', 'Published attractions'],
+    ['Areas', s.totalAreas, '🗺️', 'Mapped San Juan City zones'],
+    ['Attractions', s.totalAttractions, '📍', 'Published San Juan City attractions'],
     ['Photos', s.totalPhotos, '🖼️', 'Media assets in gallery'],
     ['Users', s.totalUsers, '👥', 'Registered app users'],
     ['Premium Subscribers', s.totalPremiumSubscribers, '💎', 'Active premium members']
@@ -16,12 +15,12 @@
   document.getElementById('summaryPanel').innerHTML = `
     <div class='grid cols-2'>
       <div class='surface-body'>
-        <h3>Attraction Summary</h3>
+        <h3>San Juan City Attraction Summary</h3>
         <p class='page-subtitle'>Active admin snapshot.</p>
       </div>
       <div class='surface-body'>
-        <div><span class='badge active'>Active Content</span> ${s.totalAttractions}</div>
-        <div style='margin-top:8px'><span class='badge featured'>Featured Candidates</span> ${Math.max(0, Math.floor(s.totalAttractions * 0.2))}</div>
+        <div><span class='badge active'>Active Content</span> ${s.activeAttractions ?? s.totalAttractions}</div>
+        <div style='margin-top:8px'><span class='badge featured'>Featured Attractions</span> ${s.featuredAttractions ?? 0}</div>
       </div>
     </div>`
 })();
