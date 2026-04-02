@@ -27,6 +27,10 @@ class AdminApiController(
         }
 
         route.get("/admin/api/cities") { if (!authorizationService.requireRead(call, ModuleKey.CITIES)) return@get; call.respond(ApiResponse(true, "Cities loaded", service.listCities())) }
+        route.get("/admin/api/reference/ph-cities") {
+            if (!authorizationService.requireRead(call, ModuleKey.CITIES)) return@get
+            call.respond(ApiResponse(true, "City suggestions loaded", service.suggestPhilippineCities(call.request.queryParameters["q"])))
+        }
         route.post("/admin/api/cities") { if (!authorizationService.requireCreate(call, ModuleKey.CITIES)) return@post; val req = call.receive<CityRequest>(); call.respond(HttpStatusCode.Created, ApiResponse(true, "City created", mapOf("id" to service.createCity(req)))) }
         route.get("/admin/api/cities/{id}") { if (!authorizationService.requireRead(call, ModuleKey.CITIES)) return@get; call.respond(ApiResponse(true, "City loaded", service.getCity(call.parameters["id"]!!.toLong()))) }
         route.put("/admin/api/cities/{id}") { if (!authorizationService.requireUpdate(call, ModuleKey.CITIES)) return@put; service.updateCity(call.parameters["id"]!!.toLong(), call.receive()); call.respond(ApiResponse<Unit>(true, "City updated")) }
