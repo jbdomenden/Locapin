@@ -9,35 +9,34 @@ import locapin.admin.utils.Passwords
 
 class AdminService(
     private val repo: ContentRepository = ContentRepository(),
-    private val adminRepo: AdminRepository = AdminRepository(),
-    private val philippineCities: PhilippineCities = PhilippineCities()
+    private val adminRepo: AdminRepository = AdminRepository()
 ) {
     fun dashboard() = repo.dashboardStats()
-    fun listCities() = repo.listCities()
-    fun suggestPhilippineCities(query: String?) = philippineCities.suggest(query)
-    fun getCity(id: Long) = repo.getCity(id)
-    fun createCity(req: CityRequest): Long { Validators.requireNotBlank(req.name, "City name"); return repo.createCity(req) }
-    fun updateCity(id: Long, req: CityRequest) { Validators.requireNotBlank(req.name, "City name"); repo.updateCity(id, req) }
-    fun updateCityStatus(id: Long, status: EntityStatus) = repo.updateCityStatus(id, status)
-    fun updateCityPremium(id: Long, premium: Boolean) = repo.updateCityPremium(id, premium)
 
-    fun listAreas(cityId: Long?) = repo.listAreas(cityId)
+    fun listAreas() = repo.listAreas()
     fun getArea(id: Long) = repo.getArea(id)
-    fun areasByCity(cityId: Long) = repo.listAreas(cityId)
-    fun createArea(req: AreaRequest): Long { Validators.requireNotBlank(req.name, "Area name"); Validators.validateLatLng(req.centerLatitude, req.centerLongitude); return repo.createArea(req) }
-    fun updateArea(id: Long, req: AreaRequest) { Validators.requireNotBlank(req.name, "Area name"); Validators.validateLatLng(req.centerLatitude, req.centerLongitude); repo.updateArea(id, req) }
+    fun createArea(req: AreaRequest): Long {
+        Validators.requireNotBlank(req.name, "Area name")
+        Validators.validateLatLng(req.centerLatitude, req.centerLongitude)
+        return repo.createArea(req)
+    }
+    fun updateArea(id: Long, req: AreaRequest) {
+        Validators.requireNotBlank(req.name, "Area name")
+        Validators.validateLatLng(req.centerLatitude, req.centerLongitude)
+        repo.updateArea(id, req)
+    }
     fun updateAreaStatus(id: Long, status: EntityStatus) = repo.updateAreaStatus(id, status)
 
-    fun listAttractions(cityId: Long?, areaId: Long?, q: String?) = repo.listAttractions(cityId, areaId, q)
+    fun listAttractions(areaId: Long?, q: String?) = repo.listAttractions(areaId, q)
     fun getAttraction(id: Long) = repo.getAttraction(id)
     fun createAttraction(req: AttractionRequest): Long {
         Validators.requireNotBlank(req.name, "Attraction name"); Validators.requireNotBlank(req.description, "Description"); Validators.requireNotBlank(req.highlights, "Highlights"); Validators.validateLatLng(req.latitude, req.longitude)
-        val area = repo.getArea(req.areaId) ?: throw BadRequestException("Area not found")
-        if ((area["cityId"] as Long) != req.cityId) throw BadRequestException("Area does not belong to selected city")
+        repo.getArea(req.areaId) ?: throw BadRequestException("Area not found")
         return repo.createAttraction(req)
     }
     fun updateAttraction(id: Long, req: AttractionRequest) {
         Validators.requireNotBlank(req.name, "Attraction name"); Validators.requireNotBlank(req.description, "Description"); Validators.requireNotBlank(req.highlights, "Highlights"); Validators.validateLatLng(req.latitude, req.longitude)
+        repo.getArea(req.areaId) ?: throw BadRequestException("Area not found")
         repo.updateAttraction(id, req)
     }
     fun updateAttractionStatus(id: Long, status: EntityStatus) = repo.updateAttractionStatus(id, status)

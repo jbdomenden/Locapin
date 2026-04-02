@@ -71,40 +71,25 @@ class BootstrapService(private val config: AppConfig) {
     private fun seedContentDataIfNeeded() = transaction {
         val now = Instant.now()
 
-        val cityIds = if (CitiesTable.selectAll().count() == 0L) {
-            mapOf(
-                "San Juan City" to CitiesTable.insert {
-                    it[name] = "San Juan City"
-                    it[isPremium] = true
-                    it[status] = EntityStatus.ACTIVE
-                    it[createdAt] = now
-                    it[updatedAt] = now
-                }[CitiesTable.id],
-                "Mandaluyong City" to CitiesTable.insert {
-                    it[name] = "Mandaluyong City"
-                    it[isPremium] = false
-                    it[status] = EntityStatus.ACTIVE
-                    it[createdAt] = now
-                    it[updatedAt] = now
-                }[CitiesTable.id],
-                "Quezon City" to CitiesTable.insert {
-                    it[name] = "Quezon City"
-                    it[isPremium] = true
-                    it[status] = EntityStatus.ACTIVE
-                    it[createdAt] = now
-                    it[updatedAt] = now
-                }[CitiesTable.id]
-            )
+        val sanJuanCityId = if (CitiesTable.selectAll().count() == 0L) {
+            CitiesTable.insert {
+                it[name] = "San Juan City"
+                it[isPremium] = true
+                it[status] = EntityStatus.ACTIVE
+                it[createdAt] = now
+                it[updatedAt] = now
+            }[CitiesTable.id]
         } else {
-            CitiesTable.selectAll().associate { it[CitiesTable.name] to it[CitiesTable.id] }
+            CitiesTable.selectAll().where { CitiesTable.name eq "San Juan City" }.singleOrNull()?.get(CitiesTable.id)
+                ?: CitiesTable.selectAll().limit(1).single()[CitiesTable.id]
         }
 
         val areaIds = if (AreasTable.selectAll().count() == 0L) {
             mapOf(
-                "Greenhills" to insertArea(cityIds.getValue("San Juan City"), "Greenhills", 14.6038, 121.0496, now),
-                "Pinaglabanan" to insertArea(cityIds.getValue("San Juan City"), "Pinaglabanan", 14.6018, 121.0319, now),
-                "Ortigas Center" to insertArea(cityIds.getValue("Mandaluyong City"), "Ortigas Center", 14.5868, 121.0564, now),
-                "Cubao" to insertArea(cityIds.getValue("Quezon City"), "Cubao", 14.6195, 121.0533, now)
+                "Greenhills" to insertArea(sanJuanCityId, "Greenhills", 14.6038, 121.0496, now),
+                "Pinaglabanan" to insertArea(sanJuanCityId, "Pinaglabanan", 14.6018, 121.0319, now),
+                "Little Baguio" to insertArea(sanJuanCityId, "Little Baguio", 14.5992, 121.0401, now),
+                "West Crame" to insertArea(sanJuanCityId, "West Crame", 14.6067, 121.0417, now)
             )
         } else {
             AreasTable.selectAll().associate { it[AreasTable.name] to it[AreasTable.id] }
@@ -112,14 +97,14 @@ class BootstrapService(private val config: AppConfig) {
 
         val attractionIds = if (AttractionsTable.selectAll().count() == 0L) {
             mapOf(
-                "Museo ng Katipunan" to insertAttraction(cityIds.getValue("San Juan City"), areaIds.getValue("Pinaglabanan"), "Museo ng Katipunan", "A compact museum showcasing Katipunan memorabilia, local heritage archives, and guided exhibits.", "Historical artifacts, guided tours, educational displays", 14.6022, 121.0327, "Tue-Sun 9:00 AM - 5:00 PM", true, now),
-                "Pinaglabanan Shrine" to insertAttraction(cityIds.getValue("San Juan City"), areaIds.getValue("Pinaglabanan"), "Pinaglabanan Shrine", "A key historical landmark that commemorates the Battle of San Juan del Monte.", "Heritage park, battle monument, open grounds", 14.6015, 121.0315, "Daily 6:00 AM - 8:00 PM", true, now),
-                "Ronac Art Center" to insertAttraction(cityIds.getValue("San Juan City"), areaIds.getValue("Greenhills"), "Ronac Art Center", "A contemporary venue hosting rotating exhibitions from local and international artists.", "Modern exhibits, curated collections, art talks", 14.6048, 121.0523, "Wed-Mon 10:00 AM - 7:00 PM", false, now),
-                "Fundacion Sanso" to insertAttraction(cityIds.getValue("San Juan City"), areaIds.getValue("Greenhills"), "Fundacion Sanso", "Home of notable Philippine modern art pieces with regular curated exhibits.", "Museum quality galleries, artist archives, workshops", 14.5995, 121.0483, "Tue-Sun 10:00 AM - 6:00 PM", true, now),
-                "Art Sector Gallery" to insertAttraction(cityIds.getValue("San Juan City"), areaIds.getValue("Greenhills"), "Art Sector Gallery", "A design-forward gallery spotlighting modern Filipino visual artists.", "Contemporary artwork, weekend events, artist meetups", 14.6032, 121.0487, "Thu-Tue 11:00 AM - 7:00 PM", false, now),
-                "Greenhills Shopping Center" to insertAttraction(cityIds.getValue("San Juan City"), areaIds.getValue("Greenhills"), "Greenhills Shopping Center", "A landmark shopping district known for dining, retail, and lifestyle stores.", "Shopping complex, food choices, local finds", 14.6029, 121.0498, "Daily 10:00 AM - 9:00 PM", true, now),
-                "Greenhills Promenade" to insertAttraction(cityIds.getValue("San Juan City"), areaIds.getValue("Greenhills"), "Greenhills Promenade", "Open-air promenade zone with entertainment, cinema, and cafes.", "Al fresco spaces, cinema, coffee spots", 14.6037, 121.0509, "Daily 10:00 AM - 10:00 PM", false, now),
-                "V-Mall" to insertAttraction(cityIds.getValue("San Juan City"), areaIds.getValue("Greenhills"), "V-Mall", "A vibrant mall wing popular for gadgets, fashion boutiques, and specialty stores.", "Electronics stores, fashion stalls, weekend foot traffic", 14.6033, 121.0501, "Daily 10:00 AM - 9:00 PM", true, now)
+                "Museo ng Katipunan" to insertAttraction(sanJuanCityId, areaIds.getValue("Pinaglabanan"), "Museo ng Katipunan", "A compact museum showcasing Katipunan memorabilia, local heritage archives, and guided exhibits.", "Historical artifacts, guided tours, educational displays", 14.6022, 121.0327, "Tue-Sun 9:00 AM - 5:00 PM", true, now),
+                "Pinaglabanan Shrine" to insertAttraction(sanJuanCityId, areaIds.getValue("Pinaglabanan"), "Pinaglabanan Shrine", "A key historical landmark that commemorates the Battle of San Juan del Monte.", "Heritage park, battle monument, open grounds", 14.6015, 121.0315, "Daily 6:00 AM - 8:00 PM", true, now),
+                "Ronac Art Center" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Ronac Art Center", "A contemporary venue hosting rotating exhibitions from local and international artists.", "Modern exhibits, curated collections, art talks", 14.6048, 121.0523, "Wed-Mon 10:00 AM - 7:00 PM", false, now),
+                "Fundacion Sanso" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Fundacion Sanso", "Home of notable Philippine modern art pieces with regular curated exhibits.", "Museum quality galleries, artist archives, workshops", 14.5995, 121.0483, "Tue-Sun 10:00 AM - 6:00 PM", true, now),
+                "Art Sector Gallery" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Art Sector Gallery", "A design-forward gallery spotlighting modern Filipino visual artists.", "Contemporary artwork, weekend events, artist meetups", 14.6032, 121.0487, "Thu-Tue 11:00 AM - 7:00 PM", false, now),
+                "Greenhills Shopping Center" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Greenhills Shopping Center", "A landmark shopping district known for dining, retail, and lifestyle stores.", "Shopping complex, food choices, local finds", 14.6029, 121.0498, "Daily 10:00 AM - 9:00 PM", true, now),
+                "Greenhills Promenade" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Greenhills Promenade", "Open-air promenade zone with entertainment, cinema, and cafes.", "Al fresco spaces, cinema, coffee spots", 14.6037, 121.0509, "Daily 10:00 AM - 10:00 PM", false, now),
+                "V-Mall" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "V-Mall", "A vibrant mall wing popular for gadgets, fashion boutiques, and specialty stores.", "Electronics stores, fashion stalls, weekend foot traffic", 14.6033, 121.0501, "Daily 10:00 AM - 9:00 PM", true, now)
             )
         } else {
             AttractionsTable.selectAll().associate { it[AttractionsTable.name] to it[AttractionsTable.id] }

@@ -26,25 +26,19 @@ class AdminApiController(
             call.respond(ApiResponse(true, "Dashboard loaded", service.dashboard()))
         }
 
-        route.get("/cities") { if (!authorizationService.requireRead(call, ModuleKey.CITIES)) return@get; call.respond(ApiResponse(true, "Cities loaded", service.listCities())) }
-        route.get("/reference/ph-cities") {
-            if (!authorizationService.requireRead(call, ModuleKey.CITIES)) return@get
-            call.respond(ApiResponse(true, "City suggestions loaded", service.suggestPhilippineCities(call.request.queryParameters["q"])))
+        route.get("/areas") {
+            if (!authorizationService.requireRead(call, ModuleKey.AREAS)) return@get
+            call.respond(ApiResponse(true, "Areas loaded", service.listAreas()))
         }
-        route.post("/cities") { if (!authorizationService.requireCreate(call, ModuleKey.CITIES)) return@post; val req = call.receive<CityRequest>(); call.respond(HttpStatusCode.Created, ApiResponse(true, "City created", mapOf("id" to service.createCity(req)))) }
-        route.get("/cities/{id}") { if (!authorizationService.requireRead(call, ModuleKey.CITIES)) return@get; call.respond(ApiResponse(true, "City loaded", service.getCity(call.parameters["id"]!!.toLong()))) }
-        route.put("/cities/{id}") { if (!authorizationService.requireUpdate(call, ModuleKey.CITIES)) return@put; service.updateCity(call.parameters["id"]!!.toLong(), call.receive()); call.respond(ApiResponse<Unit>(true, "City updated")) }
-        route.patch("/cities/{id}/status") { if (!authorizationService.requireUpdate(call, ModuleKey.CITIES)) return@patch; service.updateCityStatus(call.parameters["id"]!!.toLong(), call.receive<StatusRequest>().status); call.respond(ApiResponse<Unit>(true, "City status updated")) }
-        route.patch("/cities/{id}/premium") { if (!authorizationService.requireUpdate(call, ModuleKey.CITIES)) return@patch; service.updateCityPremium(call.parameters["id"]!!.toLong(), call.receive<PremiumRequest>().isPremium); call.respond(ApiResponse<Unit>(true, "City premium updated")) }
-
-        route.get("/areas") { if (!authorizationService.requireRead(call, ModuleKey.AREAS)) return@get; call.respond(ApiResponse(true, "Areas loaded", service.listAreas(call.request.queryParameters["cityId"]?.toLongOrNull()))) }
         route.post("/areas") { if (!authorizationService.requireCreate(call, ModuleKey.AREAS)) return@post; call.respond(HttpStatusCode.Created, ApiResponse(true, "Area created", mapOf("id" to service.createArea(call.receive())))) }
         route.get("/areas/{id}") { if (!authorizationService.requireRead(call, ModuleKey.AREAS)) return@get; call.respond(ApiResponse(true, "Area loaded", service.getArea(call.parameters["id"]!!.toLong()))) }
         route.put("/areas/{id}") { if (!authorizationService.requireUpdate(call, ModuleKey.AREAS)) return@put; service.updateArea(call.parameters["id"]!!.toLong(), call.receive()); call.respond(ApiResponse<Unit>(true, "Area updated")) }
         route.patch("/areas/{id}/status") { if (!authorizationService.requireUpdate(call, ModuleKey.AREAS)) return@patch; service.updateAreaStatus(call.parameters["id"]!!.toLong(), call.receive<StatusRequest>().status); call.respond(ApiResponse<Unit>(true, "Area status updated")) }
-        route.get("/areas/by-city/{cityId}") { if (!authorizationService.requireRead(call, ModuleKey.AREAS)) return@get; call.respond(ApiResponse(true, "Areas loaded", service.areasByCity(call.parameters["cityId"]!!.toLong()))) }
 
-        route.get("/attractions") { if (!authorizationService.requireRead(call, ModuleKey.ATTRACTIONS)) return@get; call.respond(ApiResponse(true, "Attractions loaded", service.listAttractions(call.request.queryParameters["cityId"]?.toLongOrNull(), call.request.queryParameters["areaId"]?.toLongOrNull(), call.request.queryParameters["q"]))) }
+        route.get("/attractions") {
+            if (!authorizationService.requireRead(call, ModuleKey.ATTRACTIONS)) return@get
+            call.respond(ApiResponse(true, "Attractions loaded", service.listAttractions(call.request.queryParameters["areaId"]?.toLongOrNull(), call.request.queryParameters["q"])))
+        }
         route.post("/attractions") { if (!authorizationService.requireCreate(call, ModuleKey.ATTRACTIONS)) return@post; call.respond(HttpStatusCode.Created, ApiResponse(true, "Attraction created", mapOf("id" to service.createAttraction(call.receive())))) }
         route.get("/attractions/{id}") { if (!authorizationService.requireRead(call, ModuleKey.ATTRACTIONS)) return@get; call.respond(ApiResponse(true, "Attraction loaded", service.getAttraction(call.parameters["id"]!!.toLong()))) }
         route.put("/attractions/{id}") { if (!authorizationService.requireUpdate(call, ModuleKey.ATTRACTIONS)) return@put; service.updateAttraction(call.parameters["id"]!!.toLong(), call.receive()); call.respond(ApiResponse<Unit>(true, "Attraction updated")) }
