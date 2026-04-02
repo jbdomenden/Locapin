@@ -89,7 +89,8 @@ class BootstrapService(private val config: AppConfig) {
                 "Greenhills" to insertArea(sanJuanCityId, "Greenhills", 14.6038, 121.0496, now),
                 "Pinaglabanan" to insertArea(sanJuanCityId, "Pinaglabanan", 14.6018, 121.0319, now),
                 "Little Baguio" to insertArea(sanJuanCityId, "Little Baguio", 14.5992, 121.0401, now),
-                "West Crame" to insertArea(sanJuanCityId, "West Crame", 14.6067, 121.0417, now)
+                "West Crame" to insertArea(sanJuanCityId, "West Crame", 14.6067, 121.0417, now),
+                "Addition Hills" to insertArea(sanJuanCityId, "Addition Hills", 14.5935, 121.0364, now)
             )
         } else {
             AreasTable.selectAll().associate { it[AreasTable.name] to it[AreasTable.id] }
@@ -101,7 +102,7 @@ class BootstrapService(private val config: AppConfig) {
                 "Pinaglabanan Shrine" to insertAttraction(sanJuanCityId, areaIds.getValue("Pinaglabanan"), "Pinaglabanan Shrine", "A key historical landmark that commemorates the Battle of San Juan del Monte.", "Heritage park, battle monument, open grounds", 14.6015, 121.0315, "Daily 6:00 AM - 8:00 PM", true, now),
                 "Ronac Art Center" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Ronac Art Center", "A contemporary venue hosting rotating exhibitions from local and international artists.", "Modern exhibits, curated collections, art talks", 14.6048, 121.0523, "Wed-Mon 10:00 AM - 7:00 PM", false, now),
                 "Fundacion Sanso" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Fundacion Sanso", "Home of notable Philippine modern art pieces with regular curated exhibits.", "Museum quality galleries, artist archives, workshops", 14.5995, 121.0483, "Tue-Sun 10:00 AM - 6:00 PM", true, now),
-                "Art Sector Gallery" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Art Sector Gallery", "A design-forward gallery spotlighting modern Filipino visual artists.", "Contemporary artwork, weekend events, artist meetups", 14.6032, 121.0487, "Thu-Tue 11:00 AM - 7:00 PM", false, now),
+                "Art Sector Gallery" to insertAttraction(sanJuanCityId, areaIds.getValue("Addition Hills"), "Art Sector Gallery", "A design-forward gallery spotlighting modern Filipino visual artists.", "Contemporary artwork, weekend events, artist meetups", 14.5952, 121.0378, "Thu-Tue 11:00 AM - 7:00 PM", false, now),
                 "Greenhills Shopping Center" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Greenhills Shopping Center", "A landmark shopping district known for dining, retail, and lifestyle stores.", "Shopping complex, food choices, local finds", 14.6029, 121.0498, "Daily 10:00 AM - 9:00 PM", true, now),
                 "Greenhills Promenade" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Greenhills Promenade", "Open-air promenade zone with entertainment, cinema, and cafes.", "Al fresco spaces, cinema, coffee spots", 14.6037, 121.0509, "Daily 10:00 AM - 10:00 PM", false, now),
                 "V-Mall" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "V-Mall", "A vibrant mall wing popular for gadgets, fashion boutiques, and specialty stores.", "Electronics stores, fashion stalls, weekend foot traffic", 14.6033, 121.0501, "Daily 10:00 AM - 9:00 PM", true, now)
@@ -147,7 +148,18 @@ class BootstrapService(private val config: AppConfig) {
             }
         }
 
-        seedAttractionPhotosIfAssetsExist(attractionIds, now)
+        val seededPhotos = seedAttractionPhotosIfAssetsExist(attractionIds, now)
+
+        logger.info(
+            "Bootstrap seed summary -> cities: {}, areas: {}, attractions: {}, plans: {}, users: {}, subscriptions: {}, photosInserted: {}",
+            CitiesTable.selectAll().count(),
+            AreasTable.selectAll().count(),
+            AttractionsTable.selectAll().where { AttractionsTable.isDeleted eq false }.count(),
+            SubscriptionPlansTable.selectAll().count(),
+            UsersTable.selectAll().count(),
+            SubscriptionsTable.selectAll().count(),
+            seededPhotos
+        )
     }
 
     private fun insertArea(cityId: Long, areaName: String, lat: Double, lng: Double, now: Instant): Long =
@@ -207,14 +219,14 @@ class BootstrapService(private val config: AppConfig) {
             it[UsersTable.createdAt] = createdAt
         }[UsersTable.id]
 
-    private fun seedAttractionPhotosIfAssetsExist(attractionIds: Map<String, Long>, now: Instant) {
-        if (AttractionPhotosTable.selectAll().count() > 0L) return
+    private fun seedAttractionPhotosIfAssetsExist(attractionIds: Map<String, Long>, now: Instant): Int {
+        if (AttractionPhotosTable.selectAll().count() > 0L) return 0
 
         val candidatePath = "src/main/resources/static/images/locapin-logo.jpg"
         val photoAsset = java.io.File(candidatePath)
         if (!photoAsset.exists()) {
-            logger.warn("Skipping attraction photo bootstrap because no local seed image asset exists.")
-            return
+            logger.warn("Skipping attraction photo bootstrap because no local seed image asset exists: {}", candidatePath)
+            return 0
         }
 
         val targetAttractions = listOf(
@@ -224,14 +236,22 @@ class BootstrapService(private val config: AppConfig) {
             "V-Mall"
         )
 
+        var inserted = 0
         targetAttractions.forEachIndexed { index, attractionName ->
-            val attractionId = attractionIds[attractionName] ?: return@forEachIndexed
+            val attractionId = attractionIds[attractionName]
+            if (attractionId == null) {
+                logger.warn("Skipping photo seed for attraction '{}' because it was not found in seeded attraction ids.", attractionName)
+                return@forEachIndexed
+            }
             AttractionPhotosTable.insert {
                 it[AttractionPhotosTable.attractionId] = attractionId
                 it[imagePath] = "/static/images/locapin-logo.jpg"
                 it[sortOrder] = index
                 it[createdAt] = now
             }
+            inserted++
         }
+
+        return inserted
     }
 }
