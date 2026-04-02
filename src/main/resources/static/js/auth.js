@@ -5,8 +5,8 @@
       try {
         await api.post('/admin/auth/login', { email: email.value, password: password.value })
         location.href = '/admin/dashboard'
-      } catch (err) {
-        ui.toast(err.message)
+      } catch {
+        // api.request already surfaces backend error messages.
       }
     })
     return

@@ -12,7 +12,7 @@ This repository contains the **LocaPin admin website and backend only**.
 - Session-based admin authentication
 - Super admin bootstrap from environment variables on first startup
 - Admin dashboard
-- CRUD for cities
+- San Juan City scoped content management
 - CRUD for areas
 - CRUD for attractions
 - CRUD for attraction photos
