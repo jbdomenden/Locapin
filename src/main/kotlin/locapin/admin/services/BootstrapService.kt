@@ -22,8 +22,6 @@ class BootstrapService(private val config: AppConfig) {
         val superAdminEmail = config.adminInitialEmail.lowercase()
         val superAdminPassword = config.adminInitialPassword
 
-        logger.info("Bootstrap superadmin credentials -> user: {} | pass: {}", superAdminEmail, superAdminPassword)
-
         if (adminRepository.count() == 0L) {
             adminRepository.create(
                 fullName = config.adminInitialName,
