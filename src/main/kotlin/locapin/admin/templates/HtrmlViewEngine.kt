@@ -78,7 +78,6 @@ suspend fun ApplicationCall.renderTemplate(
         "pageTitle" to (model["pageTitle"]?.toString() ?: "LocaPin Admin"),
         "adminName" to (admin?.email ?: ""),
         "dashboardActiveClass" to if (activeNav == "dashboard") "active" else "",
-        "citiesActiveClass" to if (activeNav == "cities") "active" else "",
         "areasActiveClass" to if (activeNav == "areas") "active" else "",
         "attractionsActiveClass" to if (activeNav == "attractions") "active" else "",
         "plansActiveClass" to if (activeNav == "plans") "active" else ""
