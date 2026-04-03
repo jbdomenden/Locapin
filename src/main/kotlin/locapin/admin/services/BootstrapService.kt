@@ -5,6 +5,7 @@ import locapin.admin.models.*
 import locapin.admin.repositories.AdminRepository
 import locapin.admin.repositories.PermissionRecord
 import locapin.admin.utils.Passwords
+import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -71,45 +72,10 @@ class BootstrapService(private val config: AppConfig) {
     private fun seedContentDataIfNeeded() = transaction {
         val now = Instant.now()
 
-        val sanJuanCityId = if (CitiesTable.selectAll().count() == 0L) {
-            CitiesTable.insert {
-                it[name] = "San Juan City"
-                it[isPremium] = true
-                it[status] = EntityStatus.ACTIVE
-                it[createdAt] = now
-                it[updatedAt] = now
-            }[CitiesTable.id]
-        } else {
-            CitiesTable.selectAll().where { CitiesTable.name eq "San Juan City" }.singleOrNull()?.get(CitiesTable.id)
-                ?: CitiesTable.selectAll().limit(1).single()[CitiesTable.id]
-        }
+        val sanJuanCityId = ensureSanJuanCity(now)
 
-        val areaIds = if (AreasTable.selectAll().count() == 0L) {
-            mapOf(
-                "Greenhills" to insertArea(sanJuanCityId, "Greenhills", 14.6038, 121.0496, now),
-                "Pinaglabanan" to insertArea(sanJuanCityId, "Pinaglabanan", 14.6018, 121.0319, now),
-                "Little Baguio" to insertArea(sanJuanCityId, "Little Baguio", 14.5992, 121.0401, now),
-                "West Crame" to insertArea(sanJuanCityId, "West Crame", 14.6067, 121.0417, now),
-                "Addition Hills" to insertArea(sanJuanCityId, "Addition Hills", 14.5935, 121.0364, now)
-            )
-        } else {
-            AreasTable.selectAll().associate { it[AreasTable.name] to it[AreasTable.id] }
-        }
-
-        val attractionIds = if (AttractionsTable.selectAll().count() == 0L) {
-            mapOf(
-                "Museo ng Katipunan" to insertAttraction(sanJuanCityId, areaIds.getValue("Pinaglabanan"), "Museo ng Katipunan", "A compact museum showcasing Katipunan memorabilia, local heritage archives, and guided exhibits.", "Historical artifacts, guided tours, educational displays", 14.6022, 121.0327, "Tue-Sun 9:00 AM - 5:00 PM", true, now),
-                "Pinaglabanan Shrine" to insertAttraction(sanJuanCityId, areaIds.getValue("Pinaglabanan"), "Pinaglabanan Shrine", "A key historical landmark that commemorates the Battle of San Juan del Monte.", "Heritage park, battle monument, open grounds", 14.6015, 121.0315, "Daily 6:00 AM - 8:00 PM", true, now),
-                "Ronac Art Center" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Ronac Art Center", "A contemporary venue hosting rotating exhibitions from local and international artists.", "Modern exhibits, curated collections, art talks", 14.6048, 121.0523, "Wed-Mon 10:00 AM - 7:00 PM", false, now),
-                "Fundacion Sanso" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Fundacion Sanso", "Home of notable Philippine modern art pieces with regular curated exhibits.", "Museum quality galleries, artist archives, workshops", 14.5995, 121.0483, "Tue-Sun 10:00 AM - 6:00 PM", true, now),
-                "Art Sector Gallery" to insertAttraction(sanJuanCityId, areaIds.getValue("Addition Hills"), "Art Sector Gallery", "A design-forward gallery spotlighting modern Filipino visual artists.", "Contemporary artwork, weekend events, artist meetups", 14.5952, 121.0378, "Thu-Tue 11:00 AM - 7:00 PM", false, now),
-                "Greenhills Shopping Center" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Greenhills Shopping Center", "A landmark shopping district known for dining, retail, and lifestyle stores.", "Shopping complex, food choices, local finds", 14.6029, 121.0498, "Daily 10:00 AM - 9:00 PM", true, now),
-                "Greenhills Promenade" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "Greenhills Promenade", "Open-air promenade zone with entertainment, cinema, and cafes.", "Al fresco spaces, cinema, coffee spots", 14.6037, 121.0509, "Daily 10:00 AM - 10:00 PM", false, now),
-                "V-Mall" to insertAttraction(sanJuanCityId, areaIds.getValue("Greenhills"), "V-Mall", "A vibrant mall wing popular for gadgets, fashion boutiques, and specialty stores.", "Electronics stores, fashion stalls, weekend foot traffic", 14.6033, 121.0501, "Daily 10:00 AM - 9:00 PM", true, now)
-            )
-        } else {
-            AttractionsTable.selectAll().associate { it[AttractionsTable.name] to it[AttractionsTable.id] }
-        }
+        val areaIds = ensureAreas(sanJuanCityId, now)
+        val attractionIds = ensureAttractions(sanJuanCityId, areaIds, now)
 
         val planIds = if (SubscriptionPlansTable.selectAll().count() == 0L) {
             mapOf(
@@ -173,6 +139,69 @@ class BootstrapService(private val config: AppConfig) {
             it[createdAt] = now
             it[updatedAt] = now
         }[AreasTable.id]
+
+    private fun ensureSanJuanCity(now: Instant): Long =
+        CitiesTable.selectAll().where { CitiesTable.name eq "San Juan City" }.singleOrNull()?.get(CitiesTable.id)
+            ?: if (CitiesTable.selectAll().count() == 0L) {
+                CitiesTable.insert {
+                    it[name] = "San Juan City"
+                    it[isPremium] = true
+                    it[status] = EntityStatus.ACTIVE
+                    it[createdAt] = now
+                    it[updatedAt] = now
+                }[CitiesTable.id]
+            } else {
+                CitiesTable.selectAll().limit(1).single()[CitiesTable.id]
+            }
+
+    private fun ensureAreas(cityId: Long, now: Instant): Map<String, Long> {
+        val requiredAreas = listOf(
+            AreaSeed("Greenhills", 14.6038, 121.0496),
+            AreaSeed("Pinaglabanan", 14.6018, 121.0319),
+            AreaSeed("Little Baguio", 14.5992, 121.0401),
+            AreaSeed("West Crame", 14.6067, 121.0417),
+            AreaSeed("Addition Hills", 14.5935, 121.0364)
+        )
+
+        return requiredAreas.associate { area ->
+            val existingId = AreasTable.selectAll().where {
+                (AreasTable.cityId eq cityId) and (AreasTable.name eq area.name)
+            }.singleOrNull()?.get(AreasTable.id)
+            area.name to (existingId ?: insertArea(cityId, area.name, area.lat, area.lng, now))
+        }
+    }
+
+    private fun ensureAttractions(cityId: Long, areaIds: Map<String, Long>, now: Instant): Map<String, Long> {
+        val requiredAttractions = listOf(
+            AttractionSeed("Museo ng Katipunan", "Pinaglabanan", "A compact museum showcasing Katipunan memorabilia, local heritage archives, and guided exhibits.", "Historical artifacts, guided tours, educational displays", 14.6022, 121.0327, "Tue-Sun 9:00 AM - 5:00 PM", true),
+            AttractionSeed("Pinaglabanan Shrine", "Pinaglabanan", "A key historical landmark that commemorates the Battle of San Juan del Monte.", "Heritage park, battle monument, open grounds", 14.6015, 121.0315, "Daily 6:00 AM - 8:00 PM", true),
+            AttractionSeed("Ronac Art Center", "Greenhills", "A contemporary venue hosting rotating exhibitions from local and international artists.", "Modern exhibits, curated collections, art talks", 14.6048, 121.0523, "Wed-Mon 10:00 AM - 7:00 PM", false),
+            AttractionSeed("Fundacion Sanso", "Greenhills", "Home of notable Philippine modern art pieces with regular curated exhibits.", "Museum quality galleries, artist archives, workshops", 14.5995, 121.0483, "Tue-Sun 10:00 AM - 6:00 PM", true),
+            AttractionSeed("Art Sector Gallery", "Addition Hills", "A design-forward gallery spotlighting modern Filipino visual artists.", "Contemporary artwork, weekend events, artist meetups", 14.5952, 121.0378, "Thu-Tue 11:00 AM - 7:00 PM", false),
+            AttractionSeed("Greenhills Shopping Center", "Greenhills", "A landmark shopping district known for dining, retail, and lifestyle stores.", "Shopping complex, food choices, local finds", 14.6029, 121.0498, "Daily 10:00 AM - 9:00 PM", true),
+            AttractionSeed("Greenhills Promenade", "Greenhills", "Open-air promenade zone with entertainment, cinema, and cafes.", "Al fresco spaces, cinema, coffee spots", 14.6037, 121.0509, "Daily 10:00 AM - 10:00 PM", false),
+            AttractionSeed("V-Mall", "Greenhills", "A vibrant mall wing popular for gadgets, fashion boutiques, and specialty stores.", "Electronics stores, fashion stalls, weekend foot traffic", 14.6033, 121.0501, "Daily 10:00 AM - 9:00 PM", true)
+        )
+
+        return requiredAttractions.associate { attraction ->
+            val areaId = areaIds.getValue(attraction.areaName)
+            val existingId = AttractionsTable.selectAll().where {
+                (AttractionsTable.cityId eq cityId) and (AttractionsTable.name eq attraction.name)
+            }.limit(1).singleOrNull()?.get(AttractionsTable.id)
+            attraction.name to (existingId ?: insertAttraction(
+                cityId = cityId,
+                areaId = areaId,
+                attractionName = attraction.name,
+                descriptionValue = attraction.description,
+                highlightsValue = attraction.highlights,
+                lat = attraction.lat,
+                lng = attraction.lng,
+                openHoursValue = attraction.openHours,
+                featured = attraction.featured,
+                now = now
+            ))
+        }
+    }
 
     private fun insertAttraction(
         cityId: Long,
@@ -254,4 +283,21 @@ class BootstrapService(private val config: AppConfig) {
 
         return inserted
     }
+
+    private data class AreaSeed(
+        val name: String,
+        val lat: Double,
+        val lng: Double
+    )
+
+    private data class AttractionSeed(
+        val name: String,
+        val areaName: String,
+        val description: String,
+        val highlights: String,
+        val lat: Double,
+        val lng: Double,
+        val openHours: String?,
+        val featured: Boolean
+    )
 }
