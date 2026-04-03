@@ -22,8 +22,6 @@ class BootstrapService(private val config: AppConfig) {
         val superAdminEmail = config.adminInitialEmail.lowercase()
         val superAdminPassword = config.adminInitialPassword
 
-        logger.info("Bootstrap superadmin credentials -> user: {} | pass: {}", superAdminEmail, superAdminPassword)
-
         if (adminRepository.count() == 0L) {
             adminRepository.create(
                 fullName = config.adminInitialName,
@@ -77,37 +75,34 @@ class BootstrapService(private val config: AppConfig) {
         val areaIds = ensureAreas(sanJuanCityId, now)
         val attractionIds = ensureAttractions(sanJuanCityId, areaIds, now)
 
-        val planIds = if (SubscriptionPlansTable.selectAll().count() == 0L) {
-            mapOf(
-                "Explorer" to insertPlan("Explorer", "Entry plan for casual travelers with curated city guides and attraction updates.", BigDecimal("199.00"), BillingPeriod.MONTHLY, true, now),
-                "Premium" to insertPlan("Premium", "Enhanced traveler plan with premium city access and priority in-app support.", BigDecimal("499.00"), BillingPeriod.MONTHLY, true, now),
-                "Annual Premium" to insertPlan("Annual Premium", "Annual savings plan for frequent travelers with full premium benefits.", BigDecimal("4990.00"), BillingPeriod.YEARLY, true, now)
-            )
-        } else {
-            SubscriptionPlansTable.selectAll().associate { it[SubscriptionPlansTable.name] to it[SubscriptionPlansTable.id] }
-        }
-
-        val userIds = if (UsersTable.selectAll().count() == 0L) {
-            mapOf(
-                "Andrea Dela Cruz" to insertUser("Andrea Dela Cruz", "andrea.delacruz@example.com", now.minus(7, ChronoUnit.DAYS)),
-                "Miguel Tan" to insertUser("Miguel Tan", "miguel.tan@example.com", now.minus(5, ChronoUnit.DAYS)),
-                "Jasmine Flores" to insertUser("Jasmine Flores", "jasmine.flores@example.com", now.minus(2, ChronoUnit.DAYS))
-            )
-        } else {
-            UsersTable.selectAll().associate { it[UsersTable.fullName] to it[UsersTable.id] }
-        }
+        val planIds = ensureSubscriptionPlans(now)
+        val userIds = ensureSeedUsers(now)
 
         if (SubscriptionsTable.selectAll().count() == 0L && userIds.isNotEmpty() && planIds.isNotEmpty()) {
+            val andreaId = userIds["Andrea Dela Cruz"]
+            val premiumPlanId = planIds["Premium"]
+            val miguelId = userIds["Miguel Tan"]
+            val annualPremiumPlanId = planIds["Annual Premium"]
+
+            if (andreaId == null || premiumPlanId == null || miguelId == null || annualPremiumPlanId == null) {
+                logger.warn(
+                    "Skipping subscription seed because required users/plans are missing. users={}, plans={}",
+                    userIds.keys,
+                    planIds.keys
+                )
+                return@transaction
+            }
+
             SubscriptionsTable.insert {
-                it[userId] = userIds.getValue("Andrea Dela Cruz")
-                it[planId] = planIds.getValue("Premium")
+                it[userId] = andreaId
+                it[planId] = premiumPlanId
                 it[isActive] = true
                 it[startedAt] = now.minus(25, ChronoUnit.DAYS)
                 it[expiresAt] = now.plus(5, ChronoUnit.DAYS)
             }
             SubscriptionsTable.insert {
-                it[userId] = userIds.getValue("Miguel Tan")
-                it[planId] = planIds.getValue("Annual Premium")
+                it[userId] = miguelId
+                it[planId] = annualPremiumPlanId
                 it[isActive] = true
                 it[startedAt] = now.minus(60, ChronoUnit.DAYS)
                 it[expiresAt] = now.plus(305, ChronoUnit.DAYS)
@@ -241,12 +236,45 @@ class BootstrapService(private val config: AppConfig) {
             it[updatedAt] = now
         }[SubscriptionPlansTable.id]
 
+    private fun ensureSubscriptionPlans(now: Instant): Map<String, Long> {
+        val requiredPlans = listOf(
+            PlanSeed("Explorer", "Entry plan for casual travelers with curated city guides and attraction updates.", BigDecimal("199.00"), BillingPeriod.MONTHLY, true),
+            PlanSeed("Premium", "Enhanced traveler plan with premium city access and priority in-app support.", BigDecimal("499.00"), BillingPeriod.MONTHLY, true),
+            PlanSeed("Annual Premium", "Annual savings plan for frequent travelers with full premium benefits.", BigDecimal("4990.00"), BillingPeriod.YEARLY, true)
+        )
+
+        return requiredPlans.associate { plan ->
+            val existingId = SubscriptionPlansTable.selectAll().where { SubscriptionPlansTable.name eq plan.name }
+                .limit(1)
+                .singleOrNull()
+                ?.get(SubscriptionPlansTable.id)
+            plan.name to (existingId
+                ?: insertPlan(plan.name, plan.description, plan.price, plan.period, plan.active, now))
+        }
+    }
+
     private fun insertUser(fullName: String, email: String, createdAt: Instant): Long =
         UsersTable.insert {
             it[UsersTable.fullName] = fullName
             it[UsersTable.email] = email
             it[UsersTable.createdAt] = createdAt
         }[UsersTable.id]
+
+    private fun ensureSeedUsers(now: Instant): Map<String, Long> {
+        val requiredUsers = listOf(
+            UserSeed("Andrea Dela Cruz", "andrea.delacruz@example.com", now.minus(7, ChronoUnit.DAYS)),
+            UserSeed("Miguel Tan", "miguel.tan@example.com", now.minus(5, ChronoUnit.DAYS)),
+            UserSeed("Jasmine Flores", "jasmine.flores@example.com", now.minus(2, ChronoUnit.DAYS))
+        )
+
+        return requiredUsers.associate { user ->
+            val existingId = UsersTable.selectAll().where { UsersTable.fullName eq user.fullName }
+                .limit(1)
+                .singleOrNull()
+                ?.get(UsersTable.id)
+            user.fullName to (existingId ?: insertUser(user.fullName, user.email, user.createdAt))
+        }
+    }
 
     private fun seedAttractionPhotosIfAssetsExist(attractionIds: Map<String, Long>, now: Instant): Int {
         if (AttractionPhotosTable.selectAll().count() > 0L) return 0
@@ -299,5 +327,19 @@ class BootstrapService(private val config: AppConfig) {
         val lng: Double,
         val openHours: String?,
         val featured: Boolean
+    )
+
+    private data class PlanSeed(
+        val name: String,
+        val description: String,
+        val price: BigDecimal,
+        val period: BillingPeriod,
+        val active: Boolean
+    )
+
+    private data class UserSeed(
+        val fullName: String,
+        val email: String,
+        val createdAt: Instant
     )
 }
