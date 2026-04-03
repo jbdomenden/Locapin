@@ -67,8 +67,10 @@ FILE_UPLOAD_DIR=uploads
    ```
 4. On first run, schema tables are created and bootstrap seeds deterministic San Juan data.
 
-## Bootstrap seed behavior (fresh DB)
-Seeds run only when the relevant tables are empty.
+## Bootstrap seed behavior
+Bootstrap now **ensures required baseline content exists** and safely handles partially populated databases.
+
+On a fresh DB, the full baseline seed is inserted. On a partially populated DB, missing required records are added without crashing startup.
 
 - City scope seed: San Juan City
 - Areas: Pinaglabanan, Greenhills, Little Baguio, West Crame, Addition Hills
@@ -76,6 +78,12 @@ Seeds run only when the relevant tables are empty.
 - Plans: Explorer, Premium, Annual Premium
 - End users + subscriptions for dashboard/testing counts
 - Photo rows only if local image asset exists
+
+### Partial database safety
+- Required plans are ensured by name: `Explorer`, `Premium`, `Annual Premium`
+- Required seed users are ensured by name: `Andrea Dela Cruz`, `Miguel Tan`, `Jasmine Flores`
+- Subscription seed insertions are guarded, so missing keys no longer throw:
+  `NoSuchElementException: Key Premium is missing in the map`
 
 ### Development-only seeded admin test accounts
 When admin users table initially contains only the env superadmin, additional deterministic test accounts are added:
